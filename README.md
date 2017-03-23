@@ -1,4 +1,4 @@
-##stelnet
+## stelnet
 
 stelnet is tool for encrypting telnet communication. Project is intended as proof of concept for applications where ssh 
 server is too heavyweight, but you still need good secure connection.
