@@ -1,5 +1,6 @@
 #include <iostream>
 #include <getopt.h>
+#include <stdlib.h>
 
 #define DEFAULT_LISTEN_PORT 5000;
 #define DEFAULT_PORT 5000;
@@ -57,6 +58,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    std::cout << __cplusplus << std::endl;
 
 
     return 0;
