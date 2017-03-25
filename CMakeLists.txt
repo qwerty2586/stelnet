@@ -4,5 +4,5 @@ project(stelnet)
 set(CMAKE_CXX_STANDARD 14)
 
 
-set(SOURCE_FILES main.cpp client/client.cpp client/client.h)
+set(SOURCE_FILES main.cpp client/client.cpp client/client.h server/server.cpp server/server.h)
 add_executable(stelnet ${SOURCE_FILES})

@@ -1,6 +1,10 @@
 #include <iostream>
 #include <getopt.h>
 #include <stdlib.h>
+#include <thread>
+#include <unistd.h>
+#include "client/client.h"
+#include "server/server.h"
 
 #define DEFAULT_LISTEN_PORT 5000;
 #define DEFAULT_PORT 5000;
@@ -58,7 +62,28 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    std::cout << __cplusplus << std::endl;
+
+    auto s_thread = std::thread([&]() {
+        if (server) {
+            Server *s = new Server();
+            s->setup(listenport, telnetdport);
+            s->live();
+
+
+        }
+    });
+    sleep(1);
+
+    auto c_thread = std::thread([&]() {
+        if (client) {
+            Client *c = new Client();
+            c->setup(telnetport, port, address);
+            c->live();
+        }
+    });
+
+    s_thread.join();
+    c_thread.join();
 
 
     return 0;
