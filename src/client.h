@@ -7,8 +7,9 @@
 
 
 #include <string>
+#include "tcp_base_object.h"
 
-class Client {
+class Client : public TcpBaseObject{
     int listening_socket,telnet_socket, forward_socket;
     int listening_port;
     int target_port;
@@ -16,6 +17,7 @@ class Client {
 
 
 public:
+    const std::string getClassName() override { return "Client"; };
     void setup(int listen_port, int target_port, const std::string& target_address);
 
     void live();

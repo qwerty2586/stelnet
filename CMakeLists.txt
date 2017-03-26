@@ -3,6 +3,7 @@ project(stelnet)
 
 set(CMAKE_CXX_STANDARD 14)
 
+#set(CMAKE_CXX_FLAGS "-g")
 
-set(SOURCE_FILES main.cpp client/client.cpp client/client.h server/server.cpp server/server.h)
+set(SOURCE_FILES src/main.cpp src/client.cpp src/client.h src/server.cpp src/server.h src/tcp_base_object.cpp src/tcp_base_object.h)
 add_executable(stelnet ${SOURCE_FILES})

@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <thread>
 #include <unistd.h>
-#include "client/client.h"
-#include "server/server.h"
+#include "client.h"
+#include "server.h"
 
 #define DEFAULT_LISTEN_PORT 5000;
 #define DEFAULT_PORT 5000;
