@@ -25,6 +25,9 @@ void Server::live() {
         bind(listening_socket, client_port, false);
         listen(listening_socket);
         client_socket = accept(listening_socket);
+        while (1) {
+            usleep(1000);
+        }
     } catch (tcpException e) {
         std::cerr << e.what() << std::endl;
     }

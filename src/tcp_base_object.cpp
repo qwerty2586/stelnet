@@ -55,5 +55,10 @@ void TcpBaseObject::connect(int socket, const std::string &address, int port) {
 
 }
 
+void TcpBaseObject::send(int socket, const std::string &message) {
+    if (::send(socket,message.c_str(),message.size(),0) < message.size())
+        throw tcpException(this,"cant send");
+}
+
 
 

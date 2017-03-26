@@ -17,6 +17,7 @@ public:
     int socket();
     int accept(int socket);
     void connect(int socket, const std::string &address, int port);
+    void send(int socket, const std::string &message);
     virtual const std::string getClassName() = 0;
 };
 

@@ -82,8 +82,8 @@ int main(int argc, char *argv[]) {
         }
     });
 
-    s_thread.join();
-    c_thread.join();
+    if (server) s_thread.join();
+    if (client) c_thread.join();
 
 
     return 0;

@@ -19,9 +19,14 @@ void Client::live() {
 
         listening_socket = socket();
         set_reuse(listening_socket);
-        bind(listening_socket, listening_port, true);
+        bind(listening_socket, listening_port, false);
         listen(listening_socket);
-        accept(listening_socket);
+        telnet_socket = accept(listening_socket);
+        send(telnet_socket,"hello client, I live you...\n\r");
+        send(telnet_socket,"telnet is love, telent is lyfe\n\r");
+
+
+
     } catch (tcpException e) {
         std::cerr << e.what() << std::endl;
     }
