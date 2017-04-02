@@ -7,6 +7,7 @@
 
 #include <exception>
 #include <string>
+#include <vector>
 
 class TcpBaseObject {
 
@@ -18,7 +19,10 @@ public:
     int accept(int socket);
     void connect(int socket, const std::string &address, int port);
     void send(int socket, const std::string &message);
+    std::vector<int> select(std::vector<int> &socket_group, int ms_timeout);
     virtual const std::string getClassName() = 0;
+
+    std::string recv(int socket);
 };
 
 class tcpException : std::exception {
@@ -30,6 +34,7 @@ public:
     virtual const char* what() {
         return message.c_str();
     }
+
 };
 
 

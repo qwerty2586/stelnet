@@ -3,6 +3,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <algorithm>
+
+#define BUFFER_SIZE 1024
+
 
 void TcpBaseObject::bind(int socket, int port, bool localhost) {
     sockaddr_in addr;
@@ -59,6 +64,45 @@ void TcpBaseObject::send(int socket, const std::string &message) {
     if (::send(socket,message.c_str(),message.size(),0) < message.size())
         throw tcpException(this,"cant send");
 }
+
+std::string TcpBaseObject::recv(int socket) {
+    char buff[BUFFER_SIZE];
+    ssize_t len = ::recv(socket, buff, BUFFER_SIZE - 1, 0);
+    if (len<0) throw tcpException(this,"cant rcv");
+    std::string r(buff,(unsigned long)len);
+    return r;
+}
+
+
+std::vector<int> TcpBaseObject::select(std::vector<int> &socket_group, int ms_timeout) {
+    std::vector<int> r;
+    if (socket_group.size() < 1)
+        return r;
+    int max_socket = -1;
+    fd_set rfds;
+
+    // timeval ma hodnoty sekundy a microsekundy
+    timeval tv;
+    tv.tv_sec = ms_timeout / 1000;
+    tv.tv_usec = (ms_timeout % 1000) * 1000;
+
+    // nastavime skupinu
+    FD_ZERO(&rfds);
+    for (int socket : socket_group) {
+        max_socket = std::max(max_socket,socket);
+        FD_SET(socket, &rfds);
+    }
+    int count  = ::select(max_socket+1,&rfds, nullptr, nullptr, &tv); // prej musi bejt +1
+
+    if (count == -1)
+        throw tcpException(this,"cant select");
+    for (int socket : socket_group) {
+        if (FD_ISSET(socket, &rfds))
+            r.push_back(socket);
+    }
+    return r;
+}
+
 
 
 
