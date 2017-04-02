@@ -5,8 +5,10 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <algorithm>
+#include <zconf.h>
 
 #define BUFFER_SIZE 6000
+
 
 
 void TcpBaseObject::bind(int socket, int port, bool localhost) {
@@ -101,6 +103,21 @@ std::vector<int> TcpBaseObject::select(std::vector<int> &socket_group, int ms_ti
             r.push_back(socket);
     }
     return r;
+}
+
+void TcpBaseObject::close(int socket) {
+    ::close(socket);
+
+}
+
+void TcpBaseObject::remove_socket(std::vector<int> &socket_group, int socket) {
+    socket_group.erase
+            (std::remove(socket_group.begin(),socket_group.end(),socket),socket_group.end());
+
+}
+
+void TcpBaseObject::add_socket(std::vector<int> &socket_group, int socket) {
+    socket_group.push_back(socket);
 }
 
 

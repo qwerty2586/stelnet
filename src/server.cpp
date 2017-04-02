@@ -51,16 +51,22 @@ void Server::live() {
                     buffer = TcpBaseObject::recv(client_socket);
                     std::cout << "s >> " << buffer.size() << std::endl;
                     send(telnetd_socket,buffer);
-                    //send(client_socket,buffer);
                 }
                 if (socket == telnetd_socket) {
                     buffer = TcpBaseObject::recv(telnetd_socket);
+                    if (buffer.size()==0) {
+                        end = true;
+                        continue;
+                    }
                     std::cout << "s << " << buffer.size() << std::endl;
                     if (client_connected) send(client_socket,buffer);
+
                 }
-
-
             }
+        }
+
+        for (int socket : socketgroup) {
+            close(socket);
         }
 
 

@@ -20,9 +20,12 @@ public:
     void connect(int socket, const std::string &address, int port);
     void send(int socket, const std::string &message);
     std::vector<int> select(std::vector<int> &socket_group, int ms_timeout);
+    void remove_socket(std::vector<int> &socket_group,int socket);
+    void add_socket(std::vector<int> &socket_group,int socket);
     virtual const std::string getClassName() = 0;
 
     std::string recv(int socket);
+    void close(int socket);
 };
 
 class tcpException : std::exception {

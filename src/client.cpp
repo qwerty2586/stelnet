@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "client.h"
+#include <algorithm>
 
 void Client::setup(int listen_port, int target_port, const std::string &target_address) {
     this->listening_port = listen_port;
@@ -24,8 +25,6 @@ void Client::live() {
         bind(listening_socket, listening_port, false);
         listen(listening_socket);
 
-
-
         std::vector<int> socketgroup;
         std::vector<int> sel_group;
         socketgroup.push_back(listening_socket);
@@ -38,7 +37,7 @@ void Client::live() {
             for (int socket : sel_group) {
                 if (socket == listening_socket) {
                     telnet_socket = accept(listening_socket);
-                    socketgroup.push_back(telnet_socket); // pridame si ho do skupinky
+                    add_socket(socketgroup,telnet_socket); // pridame si ho do skupinky
                     std::cout << "late " << buffer.size() << std::endl;
                     send(telnet_socket,buffer);
                     client_connected = true;
@@ -46,14 +45,22 @@ void Client::live() {
                 }
                 if (socket == forward_socket) {
                     buffer = TcpBaseObject::recv(forward_socket);
-
+                    if (buffer.size()==0) {
+                        end = true;
+                        continue;
+                    }
                     std::cout << "c << " << buffer.size() << std::endl;
                     if (client_connected) send(telnet_socket,buffer);
-                    //send(telnet_socket,buffer);
 
                 }
                 if (socket == telnet_socket) {
                     buffer = TcpBaseObject::recv(telnet_socket);
+                    if (buffer.size()==0) {
+                        close(telnet_socket);
+                        remove_socket(socketgroup,telnet_socket);
+                        client_connected = false;
+                        continue;
+                    }
                     std::cout << "c >> " << buffer.size() << std::endl;
                     send(forward_socket, buffer);
                 }
@@ -62,15 +69,9 @@ void Client::live() {
             }
         }
 
-
-        listening_socket = socket();
-        set_reuse(listening_socket);
-        bind(listening_socket, listening_port, false);
-        listen(listening_socket);
-        telnet_socket = accept(listening_socket);
-        send(telnet_socket, "hello client, I live you...\n\r");
-        send(telnet_socket, "telnet is love, telnet is lyfe\n\r");
-
+        for (int socket : socketgroup) {
+            close(socket);
+        }
 
     } catch (tcpException e) {
         std::cerr << e.what() << std::endl;
