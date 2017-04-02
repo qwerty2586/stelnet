@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <algorithm>
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 6000
 
 
 void TcpBaseObject::bind(int socket, int port, bool localhost) {

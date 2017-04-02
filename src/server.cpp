@@ -16,11 +16,12 @@ void Server::live() {
 
     try {
         bool end = false;
+        bool client_connected = false;
 
 
         std::cout << "connecting to telnetd..." << std::endl;
         telnetd_socket = socket();
-        connect(telnetd_socket, "localhost", telnetd_port);
+        connect(telnetd_socket, "127.0.0.1", telnetd_port);
         std::cout << "connected to telnetd..." << std::endl;
 
 
@@ -42,16 +43,20 @@ void Server::live() {
                 if (socket == listening_socket) {
                     client_socket = accept(listening_socket);
                     socketgroup.push_back(client_socket);
+                    client_connected = true;
+                    send(client_socket,buffer);
                     std::cout << "connected client" << std::endl;
                 }
                 if (socket == client_socket) {
                     buffer = TcpBaseObject::recv(client_socket);
-                    //send(telnetd_socket,buffer);
-                    send(client_socket,buffer);
+                    std::cout << "s >> " << buffer.size() << std::endl;
+                    send(telnetd_socket,buffer);
+                    //send(client_socket,buffer);
                 }
                 if (socket == telnetd_socket) {
-                    buffer = TcpBaseObject::recv(client_socket);
-                    send(telnetd_socket,buffer);
+                    buffer = TcpBaseObject::recv(telnetd_socket);
+                    std::cout << "s << " << buffer.size() << std::endl;
+                    if (client_connected) send(client_socket,buffer);
                 }
 
 
