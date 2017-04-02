@@ -6,6 +6,7 @@
 #include "client.h"
 #include "server.h"
 
+
 #define DEFAULT_LISTEN_PORT 5000;
 #define DEFAULT_PORT 5000;
 #define DEFAULT_TELNET_PORT 23;
@@ -84,6 +85,7 @@ int main(int argc, char *argv[]) {
 
     if (server) s_thread.join();
     if (client) c_thread.join();
+
 
 
     return 0;
