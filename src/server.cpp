@@ -20,7 +20,7 @@ void Server::live() {
 
         std::cout << "connecting to telnetd..." << std::endl;
         telnetd_socket = socket();
-        connect(telnetd_socket, "127.0.0.1", telnetd_port);
+        connect(telnetd_socket, "localhost", telnetd_port);
         std::cout << "connected to telnetd..." << std::endl;
 
 
