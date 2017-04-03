@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <algorithm>
-#include <zconf.h>
+#include <unistd.h>
 
 #define BUFFER_SIZE 6000
 
@@ -70,11 +70,10 @@ void TcpBaseObject::send(int socket, const std::string &message) {
 std::string TcpBaseObject::recv(int socket) {
     char buff[BUFFER_SIZE];
     ssize_t len = ::recv(socket, buff, BUFFER_SIZE - 1, 0);
-    if (len<0) throw tcpException(this,"cant rcv");
+    if (len<1) throw tcpException(this,"cant rcv");
     std::string r(buff,(unsigned long)len);
     return r;
 }
-
 
 std::vector<int> TcpBaseObject::select(std::vector<int> &socket_group, int ms_timeout) {
     std::vector<int> r;
