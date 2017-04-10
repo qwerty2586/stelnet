@@ -28,6 +28,7 @@ void Client::live() {
 
         {
             auto keys = recv(forward_socket);
+            std::cout << "client keys: " << keys << std::endl;
             memcpy(sym_key,keys.substr(0,SYM_KEY_LENGTH).c_str(),SYM_KEY_LENGTH);
             memcpy(sym_key,keys.substr(SYM_KEY_LENGTH,IV_LENGTH).c_str(),IV_LENGTH);
         }
