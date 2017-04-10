@@ -25,6 +25,7 @@ public:
     virtual const std::string getClassName() = 0;
 
     std::string recv(int socket);
+    std::string recv(int socket,int length);
     void close(int socket);
 };
 

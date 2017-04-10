@@ -62,6 +62,9 @@ void Server::live() {
                     generate_random_binary_blob(iv, IV_LENGTH);
                     std::string keys(sym_key, SYM_KEY_LENGTH);
                     keys.append(iv, IV_LENGTH);
+                    std::cout << "iv " << iv << std::endl;
+                    std::cout << "sym_key " << sym_key << std::endl;
+
                     send(client_socket, keys);
                     cbc_started = false;
 
@@ -84,7 +87,7 @@ void Server::live() {
                     cbc_started = true;
                     buffer = std::string(dec_buffer,buffer.length());
                     unpad(buffer);
-                    std::cout << "s >> " << buffer.size() << " " << buffer << std::endl;
+                    std::cout << "s >> "    << buffer.size() << " " << buffer << std::endl;
                     send(telnetd_socket, buffer);
                 }
                 if (socket == telnetd_socket) {

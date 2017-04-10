@@ -75,6 +75,14 @@ std::string TcpBaseObject::recv(int socket) {
     return r;
 }
 
+std::string TcpBaseObject::recv(int socket, int length) {
+    char buff[BUFFER_SIZE];
+    ssize_t len = ::recv(socket, buff, length, 0);
+    if (len<1) throw tcpException(this,"cant rcv");
+    std::string r(buff,(unsigned long)len);
+    return r;
+}
+
 std::vector<int> TcpBaseObject::select(std::vector<int> &socket_group, int ms_timeout) {
     std::vector<int> r;
     if (socket_group.size() < 1)
@@ -118,6 +126,8 @@ void TcpBaseObject::remove_socket(std::vector<int> &socket_group, int socket) {
 void TcpBaseObject::add_socket(std::vector<int> &socket_group, int socket) {
     socket_group.push_back(socket);
 }
+
+
 
 
 

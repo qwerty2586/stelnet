@@ -8,10 +8,12 @@
 #include <iostream>
 #include "client.h"
 #include "padding.h"
+
 extern "C" {
 #define CBC 1
 #include "3rdparty/tiny_AES128_C/aes.h"
 }
+
 #include <algorithm>
 #include <cstring>
 
@@ -20,7 +22,6 @@ void Client::setup(int listen_port, int target_port, const std::string &target_a
     this->target_port = target_port;
     this->target_address = target_address;
 }
-
 
 
 void Client::live() {
@@ -36,12 +37,13 @@ void Client::live() {
         connect(forward_socket, target_address, target_port);
 
         {
-            auto keys = recv(forward_socket);
+            auto keys = recv(forward_socket, 32);
             std::cout << "client keys: " << keys << std::endl;
-            memcpy(sym_key,keys.substr(0,SYM_KEY_LENGTH).c_str(),SYM_KEY_LENGTH);
-            memcpy(sym_key,keys.substr(SYM_KEY_LENGTH,IV_LENGTH).c_str(),IV_LENGTH);
+            memcpy(sym_key, keys.substr(0, SYM_KEY_LENGTH).c_str(), SYM_KEY_LENGTH);
+            memcpy(iv, keys.substr(SYM_KEY_LENGTH, IV_LENGTH).c_str(), IV_LENGTH);
         }
-
+        std::cout << "iv " << iv << std::endl;
+        std::cout << "sym_key " << sym_key << std::endl;
 
 
         std::cout << "connected to server... now listening for telnet" << std::endl;
@@ -63,15 +65,15 @@ void Client::live() {
             for (int socket : sel_group) {
                 if (socket == listening_socket) {
                     telnet_socket = accept(listening_socket);
-                    add_socket(socketgroup,telnet_socket); // pridame si ho do skupinky
+                    add_socket(socketgroup, telnet_socket); // pridame si ho do skupinky
                     std::cout << "late " << buffer.size() << " " << buffer << std::endl;
-                    send(telnet_socket,buffer);
+                    send(telnet_socket, buffer);
                     client_connected = true;
                     std::cout << "connected telnet" << std::endl;
                 }
                 if (socket == forward_socket) {
                     buffer = TcpBaseObject::recv(forward_socket);
-                    if (buffer.size()==0) {
+                    if (buffer.size() == 0) {
                         end = true;
                         continue;
                     }
@@ -80,17 +82,17 @@ void Client::live() {
                                               (uint32_t) buffer.length(), (const uint8_t *) sym_key,
                                               (const uint8_t *) iv);
                     cbc_started = true;
-                    buffer = std::string(dec_buffer,buffer.length());
+                    buffer = std::string(dec_buffer, buffer.length());
                     unpad(buffer);
                     std::cout << "c << " << buffer.size() << " " << buffer << std::endl;
-                    if (client_connected) send(telnet_socket,buffer);
+                    if (client_connected) send(telnet_socket, buffer);
 
                 }
                 if (socket == telnet_socket) {
                     buffer = TcpBaseObject::recv(telnet_socket);
-                    if (buffer.size()==0) {
+                    if (buffer.size() == 0) {
                         close(telnet_socket);
-                        remove_socket(socketgroup,telnet_socket);
+                        remove_socket(socketgroup, telnet_socket);
                         client_connected = false;
                         continue;
                     }
@@ -101,7 +103,7 @@ void Client::live() {
                                               (const uint8_t *) iv);
                     cbc_started = true;
                     std::cout << "c >> " << buffer.size() << " " << buffer << std::endl;
-                    send(forward_socket, std::string(enc_buffer,buffer.length()));
+                    send(forward_socket, std::string(enc_buffer, buffer.length()));
                 }
 
 
