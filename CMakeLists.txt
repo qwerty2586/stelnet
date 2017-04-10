@@ -17,7 +17,12 @@ set(STELNET_SOURCES
         src/server.h
 
         src/tcp_base_object.cpp
-        src/tcp_base_object.h src/my_random.cpp src/my_random.h)
+        src/tcp_base_object.h
+
+        src/my_random.cpp
+        src/my_random.h
+        src/padding.cpp
+        src/padding.h)
 
 set(TINY_AES_SOURCES
         src/3rdparty/tiny-AES128-C/aes.c

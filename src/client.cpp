@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include "client.h"
+#include "padding.h"
+#include "3rdparty/tiny-AES128-C/aes.h"
 #include <algorithm>
 #include <cstring>
 
@@ -19,6 +21,7 @@ void Client::live() {
     try {
         bool end = false;
         bool client_connected = false;
+        bool cbc_started = false;
 
         char iv[IV_LENGTH];
         char sym_key[SYM_KEY_LENGTH];
@@ -55,7 +58,7 @@ void Client::live() {
                 if (socket == listening_socket) {
                     telnet_socket = accept(listening_socket);
                     add_socket(socketgroup,telnet_socket); // pridame si ho do skupinky
-                    std::cout << "late " << buffer.size() << std::endl;
+                    std::cout << "late " << buffer.size() << " " << buffer << std::endl;
                     send(telnet_socket,buffer);
                     client_connected = true;
                     std::cout << "connected telnet" << std::endl;
@@ -66,7 +69,14 @@ void Client::live() {
                         end = true;
                         continue;
                     }
-                    std::cout << "c << " << buffer.size() << std::endl;
+                    char dec_buffer[buffer.length()];
+                    AES128_CBC_decrypt_buffer((uint8_t *) dec_buffer, (uint8_t *) buffer.c_str(),
+                                              (uint32_t) buffer.length(), (cbc_started) ? 0 : (const uint8_t *) sym_key,
+                                              (cbc_started) ? 0 : (const uint8_t *) iv);
+                    cbc_started = true;
+                    buffer = std::string(dec_buffer,buffer.length());
+                    unpad(buffer);
+                    std::cout << "c << " << buffer.size() << " " << buffer << std::endl;
                     if (client_connected) send(telnet_socket,buffer);
 
                 }
@@ -78,8 +88,14 @@ void Client::live() {
                         client_connected = false;
                         continue;
                     }
-                    std::cout << "c >> " << buffer.size() << std::endl;
-                    send(forward_socket, buffer);
+                    pad_with_random(buffer);
+                    char enc_buffer[buffer.length()];
+                    AES128_CBC_encrypt_buffer((uint8_t *) enc_buffer, (uint8_t *) buffer.c_str(),
+                                              (uint32_t) buffer.length(), (cbc_started) ? 0 : (const uint8_t *) sym_key,
+                                              (cbc_started) ? 0 : (const uint8_t *) iv);
+                    cbc_started = true;
+                    std::cout << "c >> " << buffer.size() << " " << buffer << std::endl;
+                    send(forward_socket, std::string(enc_buffer,buffer.length()));
                 }
 
 
