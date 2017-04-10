@@ -5,6 +5,7 @@
 #include <iostream>
 #include "client.h"
 #include <algorithm>
+#include <cstring>
 
 void Client::setup(int listen_port, int target_port, const std::string &target_address) {
     this->listening_port = listen_port;
@@ -12,12 +13,27 @@ void Client::setup(int listen_port, int target_port, const std::string &target_a
     this->target_address = target_address;
 }
 
+
+
 void Client::live() {
     try {
         bool end = false;
         bool client_connected = false;
+
+        char iv[IV_LENGTH];
+        char sym_key[SYM_KEY_LENGTH];
+
         forward_socket = socket();
         connect(forward_socket, target_address, target_port);
+
+        {
+            auto keys = recv(forward_socket);
+            memcpy(sym_key,keys.substr(0,SYM_KEY_LENGTH).c_str(),SYM_KEY_LENGTH);
+            memcpy(sym_key,keys.substr(SYM_KEY_LENGTH,IV_LENGTH).c_str(),IV_LENGTH);
+        }
+
+
+
         std::cout << "connected to server... now listening for telnet" << std::endl;
 
         listening_socket = socket();

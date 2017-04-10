@@ -5,6 +5,8 @@
 #include <iostream>
 
 #include "server.h"
+#include "my_random.h"
+
 
 void Server::setup(int listen_port, int telnetd_port) {
     this->client_port = listen_port;
@@ -17,6 +19,9 @@ void Server::live() {
     try {
         bool end = false;
         bool client_connected = false;
+
+        char iv[IV_LENGTH];
+        char sym_key[SYM_KEY_LENGTH];
 
 
         std::cout << "connecting to telnetd..." << std::endl;
@@ -44,6 +49,10 @@ void Server::live() {
                     client_socket = accept(listening_socket);
                     socketgroup.push_back(client_socket);
                     client_connected = true;
+                    generate_random_binary_blob(sym_key,SYM_KEY_LENGTH);
+                    generate_random_binary_blob(iv,IV_LENGTH);
+                    std::string keys(sym_key,SYM_KEY_LENGTH); keys.append(iv,IV_LENGTH);
+                    send(client_socket,keys);
                     send(client_socket,buffer);
                     std::cout << "connected client" << std::endl;
                 }

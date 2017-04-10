@@ -8,6 +8,9 @@
 #include "tcp_base_object.h"
 
 
+#define SYM_KEY_LENGTH 16
+#define IV_LENGTH 16
+
 
 class Server : public TcpBaseObject {
     int client_socket,listening_socket,telnetd_socket;
