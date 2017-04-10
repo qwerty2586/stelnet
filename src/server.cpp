@@ -69,8 +69,8 @@ void Server::live() {
                     pad_with_random(buffer);
                     char enc_buffer[buffer.length()];
                     AES128_CBC_encrypt_buffer((uint8_t *) enc_buffer, (uint8_t *) buffer.c_str(),
-                                              (uint32_t) buffer.length(), (cbc_started) ? 0 : (const uint8_t *) sym_key,
-                                              (cbc_started) ? 0 : (const uint8_t *) iv);
+                                              (uint32_t) buffer.length(), (const uint8_t *) sym_key,
+                                              (const uint8_t *) iv);
                     cbc_started = true;
                     send(client_socket,std::string(enc_buffer,buffer.length()));
                     std::cout << "connected client" << std::endl;
@@ -79,8 +79,8 @@ void Server::live() {
                     buffer = TcpBaseObject::recv(client_socket);
                     char dec_buffer[buffer.length()];
                     AES128_CBC_decrypt_buffer((uint8_t *) dec_buffer, (uint8_t *) buffer.c_str(),
-                                              (uint32_t) buffer.length(), (cbc_started) ? 0 : (const uint8_t *) sym_key,
-                                              (cbc_started) ? 0 : (const uint8_t *) iv);
+                                              (uint32_t) buffer.length(), (const uint8_t *) sym_key,
+                                              (const uint8_t *) iv);
                     cbc_started = true;
                     buffer = std::string(dec_buffer,buffer.length());
                     unpad(buffer);
@@ -96,8 +96,8 @@ void Server::live() {
                     pad_with_random(buffer);
                     char enc_buffer[buffer.length()];
                     AES128_CBC_encrypt_buffer((uint8_t *) enc_buffer, (uint8_t *) buffer.c_str(),
-                                              (uint32_t) buffer.length(), (cbc_started) ? 0 : (const uint8_t *) sym_key,
-                                              (cbc_started) ? 0 : (const uint8_t *) iv);
+                                              (uint32_t) buffer.length(), (const uint8_t *) sym_key,
+                                              (const uint8_t *) iv);
                     cbc_started = true;
                     std::cout << "s << " << buffer.size() << " " << buffer << std::endl;
                     if (client_connected) send(client_socket, std::string(enc_buffer,buffer.length()));

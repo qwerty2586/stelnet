@@ -77,8 +77,8 @@ void Client::live() {
                     }
                     char dec_buffer[buffer.length()];
                     AES128_CBC_decrypt_buffer((uint8_t *) dec_buffer, (uint8_t *) buffer.c_str(),
-                                              (uint32_t) buffer.length(), (cbc_started) ? 0 : (const uint8_t *) sym_key,
-                                              (cbc_started) ? 0 : (const uint8_t *) iv);
+                                              (uint32_t) buffer.length(), (const uint8_t *) sym_key,
+                                              (const uint8_t *) iv);
                     cbc_started = true;
                     buffer = std::string(dec_buffer,buffer.length());
                     unpad(buffer);
@@ -97,8 +97,8 @@ void Client::live() {
                     pad_with_random(buffer);
                     char enc_buffer[buffer.length()];
                     AES128_CBC_encrypt_buffer((uint8_t *) enc_buffer, (uint8_t *) buffer.c_str(),
-                                              (uint32_t) buffer.length(), (cbc_started) ? 0 : (const uint8_t *) sym_key,
-                                              (cbc_started) ? 0 : (const uint8_t *) iv);
+                                              (uint32_t) buffer.length(), (const uint8_t *) sym_key,
+                                              (const uint8_t *) iv);
                     cbc_started = true;
                     std::cout << "c >> " << buffer.size() << " " << buffer << std::endl;
                     send(forward_socket, std::string(enc_buffer,buffer.length()));
