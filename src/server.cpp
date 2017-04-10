@@ -1,10 +1,15 @@
 //
 // Created by qwerty on 24. 3. 2017.
 //
+#define CBC 1
+#define ECB 1
 
 #include <iostream>
 #include <cstring>
-#include "3rdparty/tiny-AES128-C/aes.h"
+extern "C" {
+#define CBC 1
+#include "3rdparty/tiny_AES128_C/aes.h"
+}
 
 #include "server.h"
 #include "my_random.h"

@@ -7,7 +7,7 @@ if (UNIX)
     set(CMAKE_CXX_FLAGS "-lpthread")
 endif()
 
-set(STELNET_SOURCES
+set(SOURCE_FILES
         src/main.cpp
 
         src/client.cpp
@@ -22,12 +22,18 @@ set(STELNET_SOURCES
         src/my_random.cpp
         src/my_random.h
         src/padding.cpp
-        src/padding.h)
+        src/padding.h
+        )
 
-set(TINY_AES_SOURCES
-        src/3rdparty/tiny-AES128-C/aes.c
-        src/3rdparty/tiny-AES128-C/aes.h)
+SET(AES_LIB_DIR "src/3rdparty/tiny_AES128_C")
+
+INCLUDE_DIRECTORIES(${AES_LIB_DIR})
+
+ADD_LIBRARY(
+        tiny_aes_lib
+        ${AES_LIB_DIR}/aes.c
+)
 
 
-
-add_executable(stelnet ${STELNET_SOURCES} ${TINY_AES_SOURCES})
+add_executable(stelnet ${SOURCE_FILES})
+target_link_libraries(stelnet tiny_aes_lib)

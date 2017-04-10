@@ -2,10 +2,16 @@
 // Created by qwerty on 23. 3. 2017.
 //
 
+#define CBC 1
+#define ECB 1
+
 #include <iostream>
 #include "client.h"
 #include "padding.h"
-#include "3rdparty/tiny-AES128-C/aes.h"
+extern "C" {
+#define CBC 1
+#include "3rdparty/tiny_AES128_C/aes.h"
+}
 #include <algorithm>
 #include <cstring>
 
