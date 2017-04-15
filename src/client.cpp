@@ -8,6 +8,7 @@
 #include <iostream>
 #include "client.h"
 #include "padding.h"
+#include "aec_cbc.h"
 
 extern "C" {
 #define CBC 1
@@ -27,26 +28,7 @@ void Client::setup(int listen_port, int target_port, const std::string &target_a
 void Client::live() {
     try {
         bool end = false;
-        bool client_connected = false;
-        bool cbc_started = false;
-
-        char iv[IV_LENGTH];
-        char sym_key[SYM_KEY_LENGTH];
-
-        forward_socket = socket();
-        connect(forward_socket, target_address, target_port);
-
-        {
-            auto keys = recv(forward_socket, 32);
-            std::cout << "client keys: " << keys << std::endl;
-            memcpy(sym_key, keys.substr(0, SYM_KEY_LENGTH).c_str(), SYM_KEY_LENGTH);
-            memcpy(iv, keys.substr(SYM_KEY_LENGTH, IV_LENGTH).c_str(), IV_LENGTH);
-        }
-        std::cout << "iv " << iv << std::endl;
-        std::cout << "sym_key " << sym_key << std::endl;
-
-
-        std::cout << "connected to server... now listening for telnet" << std::endl;
+        AesCbc aesCbc;
 
         listening_socket = socket();
         set_reuse(listening_socket);
@@ -55,10 +37,11 @@ void Client::live() {
 
         std::vector<int> socketgroup;
         std::vector<int> sel_group;
-        socketgroup.push_back(listening_socket);
-        socketgroup.push_back(forward_socket);
+        add_socket(socketgroup,listening_socket);
 
-        std::string buffer;
+        uint8_t i_buffer[BUFFER_SIZE];
+        uint8_t o_buffer[BUFFER_SIZE];
+        uint16_t *ret_len = new uint16_t;
 
         while (!end) {
             sel_group = select(socketgroup, 1000);
@@ -66,44 +49,34 @@ void Client::live() {
                 if (socket == listening_socket) {
                     telnet_socket = accept(listening_socket);
                     add_socket(socketgroup, telnet_socket); // pridame si ho do skupinky
-                    std::cout << "late " << buffer.size() << " " << buffer << std::endl;
-                    send(telnet_socket, buffer);
-                    client_connected = true;
-                    std::cout << "connected telnet" << std::endl;
-                }
-                if (socket == forward_socket) {
-                    buffer = TcpBaseObject::recv(forward_socket);
-                    if (buffer.size() == 0) {
-                        end = true;
-                        continue;
-                    }
-                    char dec_buffer[buffer.length()];
-                    AES128_CBC_decrypt_buffer((uint8_t *) dec_buffer, (uint8_t *) buffer.c_str(),
-                                              (uint32_t) buffer.length(), (const uint8_t *) sym_key,
-                                              (const uint8_t *) iv);
-                    cbc_started = true;
-                    buffer = std::string(dec_buffer, buffer.length());
-                    unpad(buffer);
-                    std::cout << "c << " << buffer.size() << " " << buffer << std::endl;
-                    if (client_connected) send(telnet_socket, buffer);
 
+                    forward_socket = socket();
+                    connect(forward_socket, target_address, target_port);
+
+                    uint8_t sym_key[SYM_KEY_LENGTH];
+                    uint8_t iv[IV_LENGTH];
+
+                    recv(forward_socket,sym_key,SYM_KEY_LENGTH);
+                    recv(forward_socket,iv,IV_LENGTH);
+
+                    aesCbc = AesCbc(sym_key,iv);
+                    add_socket(socketgroup, forward_socket);
+                }
+
+                if (socket == forward_socket) {
+                    uint8_t block_count = recvchar(forward_socket);
+                    uint16_t len = recv(forward_socket,i_buffer,block_count*(uint16_t)BLOCK_SIZE);
+                    aesCbc.decrypt( o_buffer, ret_len, i_buffer, &len);
+                    send(telnet_socket, o_buffer, *ret_len);
+                    std::cout << "c >> "    << *ret_len << " " << o_buffer << std::endl;
                 }
                 if (socket == telnet_socket) {
-                    buffer = TcpBaseObject::recv(telnet_socket);
-                    if (buffer.size() == 0) {
-                        close(telnet_socket);
-                        remove_socket(socketgroup, telnet_socket);
-                        client_connected = false;
-                        continue;
-                    }
-                    pad_with_random(buffer);
-                    char enc_buffer[buffer.length()];
-                    AES128_CBC_encrypt_buffer((uint8_t *) enc_buffer, (uint8_t *) buffer.c_str(),
-                                              (uint32_t) buffer.length(), (const uint8_t *) sym_key,
-                                              (const uint8_t *) iv);
-                    cbc_started = true;
-                    std::cout << "c >> " << buffer.size() << " " << buffer << std::endl;
-                    send(forward_socket, std::string(enc_buffer, buffer.length()));
+                    uint16_t len=recv(telnet_socket,  i_buffer, BUFFER_SIZE - BLOCK_SIZE);
+                    aesCbc.encrypt(o_buffer,ret_len,i_buffer,&len);
+                    uint8_t block_count = (uint8_t)(*ret_len / (uint16_t)BLOCK_SIZE);
+                    sendchar(forward_socket,block_count);
+                    send(forward_socket, o_buffer, *ret_len);
+                    std::cout << "c << " << *ret_len << " " << o_buffer << std::endl;
                 }
 
 

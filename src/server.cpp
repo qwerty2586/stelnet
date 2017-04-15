@@ -36,7 +36,7 @@ void Server::live() {
 
         std::vector<int> socketgroup;
         std::vector<int> sel_group;
-        socketgroup.push_back(listening_socket);
+        add_socket(socketgroup,listening_socket);
 
         uint8_t i_buffer[BUFFER_SIZE];
         uint8_t o_buffer[BUFFER_SIZE];
@@ -47,11 +47,11 @@ void Server::live() {
             for (int socket : sel_group) {
                 if (socket == listening_socket) {
                     client_socket = accept(listening_socket);
-                    socketgroup.push_back(client_socket);
+                    add_socket(socketgroup,client_socket);
                     std::cout << "connected client" << std::endl;
 
-                    uint8_t iv[IV_LENGTH];
                     uint8_t sym_key[SYM_KEY_LENGTH];
+                    uint8_t iv[IV_LENGTH];
 
                     generate_random_binary_blob((char *) sym_key, SYM_KEY_LENGTH);
                     generate_random_binary_blob((char *) iv, IV_LENGTH);
@@ -68,7 +68,7 @@ void Server::live() {
                     telnetd_socket = socket();
                     connect(telnetd_socket, "127.0.0.1", telnetd_port);
                     std::cout << "connected to telnetd..." << std::endl;
-                    socketgroup.push_back(telnetd_socket);
+                    add_socket(socketgroup,telnetd_socket);
 
                 }
                 if (socket == client_socket) {
