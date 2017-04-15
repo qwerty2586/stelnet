@@ -17,7 +17,7 @@ public:
     void bind(int socket, int port, bool localhost);
     void listen(int socket);
     void set_reuse(int socket);
-    int socket();
+    int csocket();
     int accept(int socket);
     void connect(int socket, const std::string &address, int port);
     void send(int socket, const std::string &message);

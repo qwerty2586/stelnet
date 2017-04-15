@@ -10,14 +10,6 @@
 #include "padding.h"
 #include "aec_cbc.h"
 
-extern "C" {
-#define CBC 1
-#include "3rdparty/tiny_AES128_C/aes.h"
-}
-
-#include <algorithm>
-#include <cstring>
-
 void Client::setup(int listen_port, int target_port, const std::string &target_address) {
     this->listening_port = listen_port;
     this->target_port = target_port;
@@ -30,7 +22,7 @@ void Client::live() {
         bool end = false;
         AesCbc aesCbc;
 
-        listening_socket = socket();
+        listening_socket = csocket();
         set_reuse(listening_socket);
         bind(listening_socket, listening_port, false);
         listen(listening_socket);
@@ -50,7 +42,7 @@ void Client::live() {
                     telnet_socket = accept(listening_socket);
                     add_socket(socketgroup, telnet_socket); // pridame si ho do skupinky
 
-                    forward_socket = socket();
+                    forward_socket = csocket();
                     connect(forward_socket, target_address, target_port);
 
                     uint8_t sym_key[SYM_KEY_LENGTH];
@@ -58,6 +50,9 @@ void Client::live() {
 
                     recv(forward_socket,sym_key,SYM_KEY_LENGTH);
                     recv(forward_socket,iv,IV_LENGTH);
+
+                    std::cout << "iv " << iv << std::endl;
+                    std::cout << "sym_key " << sym_key << std::endl;
 
                     aesCbc = AesCbc(sym_key,iv);
                     add_socket(socketgroup, forward_socket);

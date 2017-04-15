@@ -18,12 +18,12 @@ AesCbc::AesCbc(uint8_t *key, uint8_t *iv) {
 }
 
 void AesCbc::resetIv(uint8_t *iv) {
-    memcpy(iv,&this->dec_iv,BLOCK_SIZE);
-    memcpy(iv,&this->enc_iv,BLOCK_SIZE);
+    memcpy(this->dec_iv,iv,BLOCK_SIZE);
+    memcpy(this->enc_iv,iv,BLOCK_SIZE);
 }
 
 void AesCbc::resetKey(uint8_t *key) {
-    memcpy(key,&this->key,BLOCK_SIZE);
+    memcpy(this->key,key,BLOCK_SIZE);
 }
 
 void AesCbc::encrypt(uint8_t *output, uint16_t *o_length, uint8_t *input, uint16_t *i_length) {
@@ -42,7 +42,7 @@ void AesCbc::encrypt(uint8_t *output, uint16_t *o_length, uint8_t *input, uint16
     *o_length = new_length;
 
     // aktualizace IV
-    memcpy(output+new_length-BLOCK_SIZE,enc_iv,BLOCK_SIZE);
+    memcpy(enc_iv,output+new_length-BLOCK_SIZE,BLOCK_SIZE);
 }
 
 void AesCbc::decrypt(uint8_t *output, uint16_t *o_length, uint8_t *input, uint16_t *i_length) {
@@ -50,14 +50,14 @@ void AesCbc::decrypt(uint8_t *output, uint16_t *o_length, uint8_t *input, uint16
     uint16_t old_length = *i_length;
 
     // dekryptujeme
-    AES128_CBC_decrypt_buffer(output,input,*i_length,key,dec_iv);
+    AES128_CBC_decrypt_buffer(output,input,old_length,key,dec_iv);
 
     //schovame si IV pro pristi pouziti
-    memcpy(input+*i_length-BLOCK_SIZE,dec_iv,BLOCK_SIZE);
+    memcpy(dec_iv,input+old_length-BLOCK_SIZE,BLOCK_SIZE);
 
 
     // spocitame delku
-    uint8_t lb_valid_count = input[old_length - 1];
+    uint8_t lb_valid_count = output[old_length - 1];
     uint8_t padding_count = (uint8_t) (BLOCK_SIZE - lb_valid_count);
     uint16_t  new_length = old_length - padding_count;
     // ulozime novou delku

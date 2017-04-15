@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <unistd.h>
 
-#define BUFFER_SIZE 6000
+
 
 
 
@@ -37,9 +37,9 @@ void TcpBaseObject::set_reuse(int socket) {
         throw tcpException(this, "set reuse error");
 }
 
-int TcpBaseObject::socket() {
+int TcpBaseObject::csocket() {
     int s = ::socket(AF_INET, SOCK_STREAM, 0);
-    if (s<0) throw tcpException(this, "socket creation error");
+    if (s<0) throw tcpException(this, "csocket creation error");
     return s;
 }
 

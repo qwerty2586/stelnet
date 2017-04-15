@@ -1,19 +1,10 @@
 //
 // Created by qwerty on 24. 3. 2017.
 //
-#define CBC 1
-#define ECB 1
-
+#include <algorithm>
 #include <iostream>
-#include <cstring>
-extern "C" {
-#define CBC 1
-#include "3rdparty/tiny_AES128_C/aes.h"
-}
-
 #include "server.h"
 #include "my_random.h"
-#include "padding.h"
 #include "aec_cbc.h"
 
 
@@ -29,7 +20,7 @@ void Server::live() {
         bool end = false;
         AesCbc aesCbc;
 
-        listening_socket = socket();
+        listening_socket = csocket();
         set_reuse(listening_socket);
         bind(listening_socket, client_port, false);
         listen(listening_socket);
@@ -64,8 +55,7 @@ void Server::live() {
 
                     aesCbc = AesCbc(sym_key,iv);
 
-                    std::cout << "connecting to telnetd..." << std::endl;
-                    telnetd_socket = socket();
+                    telnetd_socket = csocket();
                     connect(telnetd_socket, "127.0.0.1", telnetd_port);
                     std::cout << "connected to telnetd..." << std::endl;
                     add_socket(socketgroup,telnetd_socket);
