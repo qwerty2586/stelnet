@@ -127,8 +127,28 @@ void TcpBaseObject::add_socket(std::vector<int> &socket_group, int socket) {
     socket_group.push_back(socket);
 }
 
+int16_t TcpBaseObject::recv(int socket, char *buffer, uint16_t length) {
+    ssize_t len = ::recv(socket, buffer, length, 0);
+    if (len<1) throw tcpException(this,"cant rcv");
+    return (int16_t) len;
+}
 
+uint8_t TcpBaseObject::recvchar(int socket) {
+    char x;
+    ssize_t len = ::recv(socket, &x, 1, 0);
+    if (len<1) throw tcpException(this,"cant rcv");
+    return (uint8_t) x;
+}
 
+void TcpBaseObject::send(int socket, char *buffer, uint16_t length) {
+    if (::send(socket,buffer,length,0) < length)
+        throw tcpException(this,"cant send");
 
+}
 
+void TcpBaseObject::sendchar(int socket, uint8_t character) {
+    if (::send(socket,&character,1,0) < 1)
+        throw tcpException(this,"cant send");
+
+}
 

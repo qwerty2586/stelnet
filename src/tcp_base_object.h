@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#define BUFFER_SIZE 4096
+
 class TcpBaseObject {
 
 public:
@@ -26,6 +28,13 @@ public:
 
     std::string recv(int socket);
     std::string recv(int socket,int length);
+
+    int16_t recv(int socket,char *buffer,uint16_t length = BUFFER_SIZE);
+    uint8_t recvchar(int socket);
+
+    void send(int socket,char *buffer,uint16_t length = BUFFER_SIZE);
+    void sendchar(int socket,uint8_t character);
+
     void close(int socket);
 };
 
