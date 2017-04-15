@@ -21,9 +21,12 @@ set(SOURCE_FILES
 
         src/my_random.cpp
         src/my_random.h
+
         src/padding.cpp
         src/padding.h
-        )
+
+        src/aec_cbc.cpp
+        src/aec_cbc.h)
 
 SET(AES_LIB_DIR "src/3rdparty/tiny_AES128_C")
 
