@@ -14,6 +14,7 @@ extern "C" {
 #include "server.h"
 #include "my_random.h"
 #include "padding.h"
+#include "aec_cbc.h"
 
 
 void Server::setup(int listen_port, int telnetd_port) {
@@ -26,18 +27,7 @@ void Server::live() {
 
     try {
         bool end = false;
-        bool client_connected = false;
-        bool cbc_started = false;
-
-        char iv[IV_LENGTH];
-        char sym_key[SYM_KEY_LENGTH];
-
-
-        std::cout << "connecting to telnetd..." << std::endl;
-        telnetd_socket = socket();
-        connect(telnetd_socket, "127.0.0.1", telnetd_port);
-        std::cout << "connected to telnetd..." << std::endl;
-
+        AesCbc aesCbc;
 
         listening_socket = socket();
         set_reuse(listening_socket);
@@ -47,9 +37,10 @@ void Server::live() {
         std::vector<int> socketgroup;
         std::vector<int> sel_group;
         socketgroup.push_back(listening_socket);
-        socketgroup.push_back(telnetd_socket);
 
-        std::string buffer;
+        uint8_t i_buffer[BUFFER_SIZE];
+        uint8_t o_buffer[BUFFER_SIZE];
+        uint16_t *ret_len = new uint16_t;
 
         while (!end) {
             sel_group = select(socketgroup, 1000);
@@ -57,54 +48,47 @@ void Server::live() {
                 if (socket == listening_socket) {
                     client_socket = accept(listening_socket);
                     socketgroup.push_back(client_socket);
-                    client_connected = true;
-                    generate_random_binary_blob(sym_key, SYM_KEY_LENGTH);
-                    generate_random_binary_blob(iv, IV_LENGTH);
-                    std::string keys(sym_key, SYM_KEY_LENGTH);
-                    keys.append(iv, IV_LENGTH);
+                    std::cout << "connected client" << std::endl;
+
+                    uint8_t iv[IV_LENGTH];
+                    uint8_t sym_key[SYM_KEY_LENGTH];
+
+                    generate_random_binary_blob((char *) sym_key, SYM_KEY_LENGTH);
+                    generate_random_binary_blob((char *) iv, IV_LENGTH);
+
                     std::cout << "iv " << iv << std::endl;
                     std::cout << "sym_key " << sym_key << std::endl;
 
-                    send(client_socket, keys);
-                    cbc_started = false;
+                    send(client_socket, sym_key,SYM_KEY_LENGTH);
+                    send(client_socket, iv,IV_LENGTH);
 
+                    aesCbc = AesCbc(sym_key,iv);
 
-                    pad_with_random(buffer);
-                    char enc_buffer[buffer.length()];
-                    AES128_CBC_encrypt_buffer((uint8_t *) enc_buffer, (uint8_t *) buffer.c_str(),
-                                              (uint32_t) buffer.length(), (const uint8_t *) sym_key,
-                                              (const uint8_t *) iv);
-                    cbc_started = true;
-                    send(client_socket,std::string(enc_buffer,buffer.length()));
-                    std::cout << "connected client" << std::endl;
+                    std::cout << "connecting to telnetd..." << std::endl;
+                    telnetd_socket = socket();
+                    connect(telnetd_socket, "127.0.0.1", telnetd_port);
+                    std::cout << "connected to telnetd..." << std::endl;
+                    socketgroup.push_back(telnetd_socket);
+
                 }
                 if (socket == client_socket) {
-                    buffer = TcpBaseObject::recv(client_socket);
-                    char dec_buffer[buffer.length()];
-                    AES128_CBC_decrypt_buffer((uint8_t *) dec_buffer, (uint8_t *) buffer.c_str(),
-                                              (uint32_t) buffer.length(), (const uint8_t *) sym_key,
-                                              (const uint8_t *) iv);
-                    cbc_started = true;
-                    buffer = std::string(dec_buffer,buffer.length());
-                    unpad(buffer);
-                    std::cout << "s >> "    << buffer.size() << " " << buffer << std::endl;
-                    send(telnetd_socket, buffer);
+                    uint8_t block_count = recvchar(client_socket);
+                    uint16_t len = recv(client_socket,i_buffer,block_count*(uint16_t)BLOCK_SIZE);
+                    aesCbc.decrypt( o_buffer, ret_len, i_buffer, &len);
+                    send(telnetd_socket, o_buffer, *ret_len);
+                    std::cout << "s >> "    << *ret_len << " " << o_buffer << std::endl;
                 }
                 if (socket == telnetd_socket) {
-                    buffer = TcpBaseObject::recv(telnetd_socket);
-                    if (buffer.size() == 0) {
+                    uint16_t len=recv(telnetd_socket,  i_buffer, BUFFER_SIZE - BLOCK_SIZE);
+                    aesCbc.encrypt(o_buffer,ret_len,i_buffer,&len);
+                    uint8_t block_count = (uint8_t)(*ret_len / (uint16_t)BLOCK_SIZE);
+                    sendchar(client_socket,block_count);
+                    send(client_socket, o_buffer, *ret_len);
+                   /* if (buffer.size() == 0) {
                         end = true;
                         continue;
-                    }
-                    pad_with_random(buffer);
-                    char enc_buffer[buffer.length()];
-                    AES128_CBC_encrypt_buffer((uint8_t *) enc_buffer, (uint8_t *) buffer.c_str(),
-                                              (uint32_t) buffer.length(), (const uint8_t *) sym_key,
-                                              (const uint8_t *) iv);
-                    cbc_started = true;
-                    std::cout << "s << " << buffer.size() << " " << buffer << std::endl;
-                    if (client_connected) send(client_socket, std::string(enc_buffer,buffer.length()));
-
+                    }*/ // pro pozdejsi pouziti s exceptionama
+                    std::cout << "s << " << *ret_len << " " << o_buffer << std::endl;
                 }
             }
         }
@@ -112,6 +96,8 @@ void Server::live() {
         for (int socket : socketgroup) {
             close(socket);
         }
+
+
 
 
     } catch (tcpException e) {

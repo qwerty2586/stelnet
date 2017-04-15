@@ -29,10 +29,10 @@ public:
     std::string recv(int socket);
     std::string recv(int socket,int length);
 
-    int16_t recv(int socket,char *buffer,uint16_t length = BUFFER_SIZE);
+    uint16_t recv(int socket, uint8_t *buffer, uint16_t length = BUFFER_SIZE);
     uint8_t recvchar(int socket);
 
-    void send(int socket,char *buffer,uint16_t length = BUFFER_SIZE);
+    void send(int socket, uint8_t *buffer, uint16_t length = BUFFER_SIZE);
     void sendchar(int socket,uint8_t character);
 
     void close(int socket);

@@ -10,18 +10,19 @@ extern "C" {
 #include "aec_cbc.h"
 #include "my_random.h"
 
-AesCbc::AesCbc(char *key, char *iv) {
-    resetKey(key);
-    resetIv(iv);
+AesCbc::AesCbc(uint8_t *key, uint8_t *iv) {
+
+    if (key) resetKey(key);
+    if (iv) resetIv(iv);
 
 }
 
-void AesCbc::resetIv(char *iv) {
+void AesCbc::resetIv(uint8_t *iv) {
     memcpy(iv,&this->dec_iv,BLOCK_SIZE);
     memcpy(iv,&this->enc_iv,BLOCK_SIZE);
 }
 
-void AesCbc::resetKey(char *key) {
+void AesCbc::resetKey(uint8_t *key) {
     memcpy(key,&this->key,BLOCK_SIZE);
 }
 

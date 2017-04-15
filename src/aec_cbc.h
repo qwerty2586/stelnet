@@ -7,14 +7,16 @@
 
 #include <cstdint>
 
+#define SYM_KEY_LENGTH 16
+#define IV_LENGTH 16
 #define BLOCK_SIZE 16
 
 class AesCbc {
 
 public:
-    AesCbc(char *key,char *iv);
-    void resetIv(char *iv);
-    void resetKey(char *key);
+    AesCbc(uint8_t *key = nullptr, uint8_t *iv = nullptr);
+    void resetIv(uint8_t *iv);
+    void resetKey(uint8_t *key);
     void encrypt(uint8_t *output, uint16_t *o_length,uint8_t *input, uint16_t *i_length);
     void decrypt(uint8_t *output, uint16_t *o_length,uint8_t *input, uint16_t *i_length);
 
