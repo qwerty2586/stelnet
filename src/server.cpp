@@ -62,8 +62,10 @@ void Server::live() {
 
                 }
                 if (socket == client_socket) {
-                    uint8_t block_count = recvchar(client_socket);
-                    uint16_t len = recv(client_socket,i_buffer,block_count*(uint16_t)BLOCK_SIZE);
+                    uint8_t block_count = f_recvchar(client_socket);
+
+                    uint16_t len = block_count*(uint16_t)BLOCK_SIZE;
+                    f_recv(client_socket,i_buffer,len);
                     aesCbc.decrypt( o_buffer, ret_len, i_buffer, &len);
                     send(telnetd_socket, o_buffer, *ret_len);
                     std::cout << "s >> "    << *ret_len << " " << o_buffer << std::endl;

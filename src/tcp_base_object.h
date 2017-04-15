@@ -26,11 +26,13 @@ public:
     void add_socket(std::vector<int> &socket_group,int socket);
     virtual const std::string getClassName() = 0;
 
-    std::string recv(int socket);
-    std::string recv(int socket,int length);
-
     uint16_t recv(int socket, uint8_t *buffer, uint16_t length = BUFFER_SIZE);
     uint8_t recvchar(int socket);
+
+    // force versions of recv
+    void f_recv(int socket, uint8_t *buffer, uint16_t length = BUFFER_SIZE);
+    uint8_t f_recvchar(int socket);
+
 
     void send(int socket, uint8_t *buffer, uint16_t length = BUFFER_SIZE);
     void sendchar(int socket,uint8_t character);

@@ -7,10 +7,6 @@
 #include <algorithm>
 #include <unistd.h>
 
-
-
-
-
 void TcpBaseObject::bind(int socket, int port, bool localhost) {
     sockaddr_in addr;
     addr.sin_family = AF_INET;
@@ -67,21 +63,6 @@ void TcpBaseObject::send(int socket, const std::string &message) {
         throw tcpException(this,"cant send");
 }
 
-std::string TcpBaseObject::recv(int socket) {
-    char buff[BUFFER_SIZE];
-    ssize_t len = ::recv(socket, buff, BUFFER_SIZE - 1, 0);
-    if (len<1) throw tcpException(this,"cant rcv");
-    std::string r(buff,(unsigned long)len);
-    return r;
-}
-
-std::string TcpBaseObject::recv(int socket, int length) {
-    char buff[BUFFER_SIZE];
-    ssize_t len = ::recv(socket, buff, length, 0);
-    if (len<1) throw tcpException(this,"cant rcv");
-    std::string r(buff,(unsigned long)len);
-    return r;
-}
 
 std::vector<int> TcpBaseObject::select(std::vector<int> &socket_group, int ms_timeout) {
     std::vector<int> r;
@@ -114,7 +95,6 @@ std::vector<int> TcpBaseObject::select(std::vector<int> &socket_group, int ms_ti
 
 void TcpBaseObject::close(int socket) {
     ::close(socket);
-
 }
 
 void TcpBaseObject::remove_socket(std::vector<int> &socket_group, int socket) {
@@ -150,5 +130,24 @@ void TcpBaseObject::sendchar(int socket, uint8_t character) {
     if (::send(socket,&character,1,0) < 1)
         throw tcpException(this,"cant send");
 
+}
+
+void TcpBaseObject::f_recv(int socket, uint8_t *buffer, uint16_t length) {
+    uint16_t received = 0;
+    while (received!=length) {
+        ssize_t len = ::recv(socket, buffer+received, length-received, 0);
+        received +=len;
+        if (len < 1) throw tcpException(this, "cant rcv");
+    }
+}
+
+uint8_t TcpBaseObject::f_recvchar(int socket) {
+    char x = 0;
+    ssize_t len = 0;
+    while (len!=1) {
+        len = ::recv(socket, &x, 1, 0);
+        if (len < 1) throw tcpException(this, "cant rcv");
+    }
+    return (uint8_t) x;
 }
 

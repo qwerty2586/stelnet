@@ -48,8 +48,8 @@ void Client::live() {
                     uint8_t sym_key[SYM_KEY_LENGTH];
                     uint8_t iv[IV_LENGTH];
 
-                    recv(forward_socket,sym_key,SYM_KEY_LENGTH);
-                    recv(forward_socket,iv,IV_LENGTH);
+                    f_recv(forward_socket,sym_key,SYM_KEY_LENGTH);
+                    f_recv(forward_socket,iv,IV_LENGTH);
 
                     std::cout << "iv " << iv << std::endl;
                     std::cout << "sym_key " << sym_key << std::endl;
@@ -59,8 +59,9 @@ void Client::live() {
                 }
 
                 if (socket == forward_socket) {
-                    uint8_t block_count = recvchar(forward_socket);
-                    uint16_t len = recv(forward_socket,i_buffer,block_count*(uint16_t)BLOCK_SIZE);
+                    uint8_t block_count = f_recvchar(forward_socket);
+                    uint16_t len =block_count*(uint16_t)BLOCK_SIZE;
+                    f_recv(forward_socket,i_buffer,len);
                     aesCbc.decrypt( o_buffer, ret_len, i_buffer, &len);
                     send(telnet_socket, o_buffer, *ret_len);
                     std::cout << "c >> "    << *ret_len << " " << o_buffer << std::endl;
