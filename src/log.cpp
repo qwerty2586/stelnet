@@ -7,13 +7,18 @@
 #include <iomanip>
 #include "log.h"
 
+bool logging_enabled = true; //default
+
 void printdata(char *tag, void *c, unsigned long n) {
+    if (!logging_enabled)
+        return;
     std::string s((char *)c,n);
     std::cout << tag << " " << n << " " << s << std::endl;
 }
 
 void printdatahex(char *tag, char *c, long n) {
-
+    if (!logging_enabled)
+        return;
     std::cout << tag << " " << n << " ";
     char const hex_chars[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 

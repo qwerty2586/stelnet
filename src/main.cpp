@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include "client.h"
 #include "server.h"
+#include "log.h"
 
 
 #define DEFAULT_LISTEN_PORT 5000;
@@ -21,6 +22,7 @@ static struct option longOpts[] = {
         {"telnetd-port", required_argument, NULL, 'd'},
         {"address",      required_argument, NULL, 'a'},
         {"help",         no_argument,       NULL, 'h'},
+        {"no-log",       no_argument,       NULL, 'n'},
         {NULL,           no_argument,       NULL, 0}
 };
 
@@ -28,6 +30,7 @@ int main(int argc, char *argv[]) {
 
     bool client = false;
     bool server = false;
+    bool log = true;
     int listenport = DEFAULT_LISTEN_PORT;
     int port = DEFAULT_PORT;
     int telnetport = DEFAULT_TELNET_PORT;
@@ -35,7 +38,7 @@ int main(int argc, char *argv[]) {
     std::string address = "";
 
     int choice;
-    while ((choice = getopt_long(argc, argv, "scl:p:t:d:a:h", longOpts, NULL)) != -1) {
+    while ((choice = getopt_long(argc, argv, "scl:p:t:d:a:hn", longOpts, NULL)) != -1) {
         switch (choice) {
             case 's':
                 server = true;
@@ -60,9 +63,13 @@ int main(int argc, char *argv[]) {
                 break;
             case 'h': // printdata help;
                 break;
+            case 'n':
+                log = false;
+                break;
         }
     }
 
+    logging_enabled = log;
 
     auto s_thread = std::thread([&]() {
         if (server) {
