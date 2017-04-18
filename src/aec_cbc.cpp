@@ -10,6 +10,8 @@ extern "C" {
 #include "aec_cbc.h"
 #include "my_random.h"
 
+std::mutex mutex;
+
 AesCbc::AesCbc(uint8_t *key, uint8_t *iv) {
 
     if (key) resetKey(key);
@@ -38,7 +40,9 @@ void AesCbc::encrypt(uint8_t *output, uint16_t *o_length, uint8_t *input, uint16
 
 
     // zavolame enkrypci
+    mutex.lock();
     AES128_CBC_encrypt_buffer(output,input,new_length,key,enc_iv);
+    mutex.unlock();
     *o_length = new_length;
 
     // aktualizace IV
@@ -50,7 +54,9 @@ void AesCbc::decrypt(uint8_t *output, uint16_t *o_length, uint8_t *input, uint16
     uint16_t old_length = *i_length;
 
     // dekryptujeme
+    mutex.lock();
     AES128_CBC_decrypt_buffer(output,input,old_length,key,dec_iv);
+    mutex.unlock();
 
     //schovame si IV pro pristi pouziti
     memcpy(dec_iv,input+old_length-BLOCK_SIZE,BLOCK_SIZE);

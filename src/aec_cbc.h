@@ -6,10 +6,13 @@
 #define STELNET_AEC_CBC_H
 
 #include <cstdint>
+#include <mutex>
 
 #define SYM_KEY_LENGTH 16
 #define IV_LENGTH 16
 #define BLOCK_SIZE 16
+
+extern std::mutex mutex;
 
 class AesCbc {
 
