@@ -26,7 +26,7 @@ set(SOURCE_FILES
         src/padding.h
 
         src/aec_cbc.cpp
-        src/aec_cbc.h)
+        src/aec_cbc.h src/log.cpp src/log.h)
 
 SET(AES_LIB_DIR "src/3rdparty/tiny_AES128_C")
 

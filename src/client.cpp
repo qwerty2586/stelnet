@@ -33,7 +33,7 @@ void Client::live() {
 
         uint8_t i_buffer[BUFFER_SIZE];
         uint8_t o_buffer[BUFFER_SIZE];
-        uint16_t *ret_len = new uint16_t;
+        uint16_t ret_len;
 
         while (!end) {
             sel_group = select(socketgroup, 1000);
@@ -62,17 +62,18 @@ void Client::live() {
                     uint8_t block_count = f_recvchar(forward_socket);
                     uint16_t len =block_count*(uint16_t)BLOCK_SIZE;
                     f_recv(forward_socket,i_buffer,len);
-                    aesCbc.decrypt( o_buffer, ret_len, i_buffer, &len);
-                    send(telnet_socket, o_buffer, *ret_len);
-                    std::cout << "c >> "    << *ret_len << " " << o_buffer << std::endl;
+                    aesCbc.decrypt( o_buffer, &ret_len, i_buffer, &len);
+                    send(telnet_socket, o_buffer, ret_len);
+                    std::cout << "c >> "    << ret_len << " " << o_buffer << std::endl;
+
                 }
                 if (socket == telnet_socket) {
                     uint16_t len=recv(telnet_socket,  i_buffer, BUFFER_SIZE - BLOCK_SIZE);
-                    aesCbc.encrypt(o_buffer,ret_len,i_buffer,&len);
-                    uint8_t block_count = (uint8_t)(*ret_len / (uint16_t)BLOCK_SIZE);
+                    aesCbc.encrypt(o_buffer,&ret_len,i_buffer,&len);
+                    uint8_t block_count = (uint8_t)(ret_len / (uint16_t)BLOCK_SIZE);
                     sendchar(forward_socket,block_count);
-                    send(forward_socket, o_buffer, *ret_len);
-                    std::cout << "c << " << *ret_len << " " << o_buffer << std::endl;
+                    send(forward_socket, o_buffer, ret_len);
+                    std::cout << "c << " << ret_len << " " << o_buffer << std::endl;
                 }
 
 

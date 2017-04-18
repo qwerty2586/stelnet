@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
             case 'a':
                 address = optarg;
                 break;
-            case 'h': // print help;
+            case 'h': // printdata help;
                 break;
         }
     }

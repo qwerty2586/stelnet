@@ -6,6 +6,7 @@
 #include "server.h"
 #include "my_random.h"
 #include "aec_cbc.h"
+#include "log.h"
 
 
 void Server::setup(int listen_port, int telnetd_port) {
@@ -31,7 +32,7 @@ void Server::live() {
 
         uint8_t i_buffer[BUFFER_SIZE];
         uint8_t o_buffer[BUFFER_SIZE];
-        uint16_t *ret_len = new uint16_t;
+        uint16_t ret_len;
 
         while (!end) {
             sel_group = select(socketgroup, 1000);
@@ -56,7 +57,7 @@ void Server::live() {
                     aesCbc = AesCbc(sym_key,iv);
 
                     telnetd_socket = csocket();
-                    connect(telnetd_socket, "127.0.0.1", telnetd_port);
+                    connect(telnetd_socket, "flufflepuff.pilsfree.czf", telnetd_port);
                     std::cout << "connected to telnetd..." << std::endl;
                     add_socket(socketgroup,telnetd_socket);
 
@@ -66,21 +67,22 @@ void Server::live() {
 
                     uint16_t len = block_count*(uint16_t)BLOCK_SIZE;
                     f_recv(client_socket,i_buffer,len);
-                    aesCbc.decrypt( o_buffer, ret_len, i_buffer, &len);
-                    send(telnetd_socket, o_buffer, *ret_len);
-                    std::cout << "s >> "    << *ret_len << " " << o_buffer << std::endl;
+                    aesCbc.decrypt( o_buffer, &ret_len, i_buffer, &len);
+                    send(telnetd_socket, o_buffer, ret_len);
+                    printdatahex("s >>",o_buffer,ret_len);
                 }
                 if (socket == telnetd_socket) {
                     uint16_t len=recv(telnetd_socket,  i_buffer, BUFFER_SIZE - BLOCK_SIZE);
-                    aesCbc.encrypt(o_buffer,ret_len,i_buffer,&len);
-                    uint8_t block_count = (uint8_t)(*ret_len / (uint16_t)BLOCK_SIZE);
+                    aesCbc.encrypt(o_buffer,&ret_len,i_buffer,&len);
+                    uint8_t block_count = (uint8_t)(ret_len / (uint16_t)BLOCK_SIZE);
                     sendchar(client_socket,block_count);
-                    send(client_socket, o_buffer, *ret_len);
+                    send(client_socket, o_buffer, ret_len);
                    /* if (buffer.size() == 0) {
                         end = true;
                         continue;
                     }*/ // pro pozdejsi pouziti s exceptionama
-                    std::cout << "s << " << *ret_len << " " << o_buffer << std::endl;
+
+                    printdatahex("s <<",o_buffer,ret_len);
                 }
             }
         }
