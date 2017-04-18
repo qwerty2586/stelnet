@@ -7,7 +7,6 @@
 
 #include <iostream>
 #include "client.h"
-#include "padding.h"
 #include "aec_cbc.h"
 #include "log.h"
 
@@ -90,23 +89,9 @@ void Client::live() {
             }
         }
 
-        for (int socket : socketgroup) {
-            close(socket);
-        }
-
     } catch (tcpException e) {
         std::cerr << e.what() << std::endl;
     }
-
-    //send(telnet_socket,"ahoj",4,0);
-    //close(telnet_socket);
-
-
-
-
-
-
-
 
 }
 

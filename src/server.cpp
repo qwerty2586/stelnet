@@ -79,12 +79,6 @@ void Server::live() {
                         aesCbc.encrypt(o_buffer, &ret_len, i_buffer, &len);
                         uint8_t block_count = (uint8_t) (ret_len / (uint16_t) BLOCK_SIZE);
                         sendchar(client_socket, block_count);
-
-                        /* if (buffer.size() == 0) {
-                             end = true;
-                             continue;
-                         }*/ // pro pozdejsi pouziti s exceptionama
-
                         printdatahex("s <<", (char *) o_buffer, ret_len);
                         send(client_socket, o_buffer, ret_len);
                     }
@@ -96,14 +90,6 @@ void Server::live() {
                 }
             }
         }
-
-        for (int socket : socketgroup) {
-            close(socket);
-        }
-
-
-
-
     } catch (tcpException e) {
         std::cerr << e.what() << std::endl;
     }
