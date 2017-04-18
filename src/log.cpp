@@ -12,17 +12,18 @@ void printdata(char *tag, void *c, unsigned long n) {
     std::cout << tag << " " << n << " " << s << std::endl;
 }
 
-void printdatahex(char *tag, void *c, long n) {
+void printdatahex(char *tag, char *c, long n) {
+
+    std::cout << tag << " " << n << " ";
+    char const hex_chars[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
+    for( int i = 0; i < n; ++i )
     {
-        using namespace std;
-        std::cout << tag << " " << n << " ";
-        cout << setfill('0');
-        for (size_t i = 0; i < n; ++i) {
-            cout << std::hex << std::setw(2) << (int) *((char *) c+i);
+        char const byte = c[i];
 
-                cout << (((i + 1) % 16 == 0) ? "\n" : " ");
-
-        }
-        cout << std::endl;
+        std::cout << hex_chars[ ( byte & 0xF0 ) >> 4 ];
+        std::cout << hex_chars[ ( byte & 0x0F ) >> 0 ];
     }
+    std::cout << std::endl;
+
 }

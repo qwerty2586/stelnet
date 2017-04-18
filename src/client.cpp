@@ -9,6 +9,7 @@
 #include "client.h"
 #include "padding.h"
 #include "aec_cbc.h"
+#include "log.h"
 
 void Client::setup(int listen_port, int target_port, const std::string &target_address) {
     this->listening_port = listen_port;
@@ -62,18 +63,21 @@ void Client::live() {
                     uint8_t block_count = f_recvchar(forward_socket);
                     uint16_t len =block_count*(uint16_t)BLOCK_SIZE;
                     f_recv(forward_socket,i_buffer,len);
+                    printdatahex("c {{", (char *) i_buffer, len);
                     aesCbc.decrypt( o_buffer, &ret_len, i_buffer, &len);
+                    printdatahex("c <<", (char *) o_buffer, ret_len);
                     send(telnet_socket, o_buffer, ret_len);
-                    std::cout << "c >> "    << ret_len << " " << o_buffer << std::endl;
+
 
                 }
                 if (socket == telnet_socket) {
                     uint16_t len=recv(telnet_socket,  i_buffer, BUFFER_SIZE - BLOCK_SIZE);
+                    printdatahex("c }}", (char *) i_buffer, len);
                     aesCbc.encrypt(o_buffer,&ret_len,i_buffer,&len);
                     uint8_t block_count = (uint8_t)(ret_len / (uint16_t)BLOCK_SIZE);
                     sendchar(forward_socket,block_count);
+                    printdatahex("c >>", (char *) o_buffer, ret_len);
                     send(forward_socket, o_buffer, ret_len);
-                    std::cout << "c << " << ret_len << " " << o_buffer << std::endl;
                 }
 
 

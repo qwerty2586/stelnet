@@ -6,7 +6,7 @@
 #define STELNET_LOG_H
 
 void printdata(char *tag, void *c, unsigned long n);
-void printdatahex(char *tag, void *c, long n);
+void printdatahex(char *tag, char *c, long n);
 
 
 #endif //STELNET_LOG_H
