@@ -9,14 +9,14 @@
 
 bool logging_enabled = true; //default
 
-void printdata(char *tag, void *c, unsigned long n) {
+void printdata(const char *tag, void *c, unsigned long n) {
     if (!logging_enabled)
         return;
     std::string s((char *)c,n);
     std::cout << tag << " " << n << " " << s << std::endl;
 }
 
-void printdatahex(char *tag, char *c, long n) {
+void printdatahex(const char *tag, char *c, long n) {
     if (!logging_enabled)
         return;
     std::cout << tag << " " << n << " ";

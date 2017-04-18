@@ -7,8 +7,8 @@
 
 extern bool logging_enabled;
 
-void printdata(char *tag, void *c, unsigned long n);
-void printdatahex(char *tag, char *c, long n);
+void printdata(const char *tag, void *c, unsigned long n);
+void printdatahex(const char *tag, char *c, long n);
 
 
 #endif //STELNET_LOG_H

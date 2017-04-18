@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="stelnet" type="CMakeRunConfiguration" factoryName="Application" singleton="true" PROGRAM_PARAMS="-c -a 127.0.0.1 -p 5001 -t 3000 -s -l 5001 -d 23 -n" WORKING_DIR="" PASS_PARENT_ENVS_2="true" PROJECT_NAME="stelnet" TARGET_NAME="stelnet" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="stelnet" RUN_TARGET_NAME="stelnet">
+  <configuration default="false" name="stelnet" type="CMakeRunConfiguration" factoryName="Application" singleton="true" PROGRAM_PARAMS="-c -a 127.0.0.1 -p 5001 -t 3000 -s -l 5001 -d 23 -n" PASS_PARENT_ENVS_2="true" PROJECT_NAME="stelnet" TARGET_NAME="stelnet" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="stelnet" RUN_TARGET_NAME="stelnet">
     <envs />
     <method />
   </configuration>

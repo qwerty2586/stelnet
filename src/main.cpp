@@ -80,7 +80,6 @@ int main(int argc, char *argv[]) {
 
         }
     });
-    sleep(1);
 
     auto c_thread = std::thread([&]() {
         if (client) {
