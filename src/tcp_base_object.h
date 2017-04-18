@@ -40,15 +40,27 @@ public:
     void close(int socket);
 };
 
-class tcpException : std::exception {
-    std::string message;
+class tcpException : public std::exception {
 public:
-    tcpException(TcpBaseObject *object, const std::string &message) {
-        this->message = object->getClassName() + ": " + message;
+
+    explicit tcpException(TcpBaseObject *object, const std::string &message) {
+        this->msg_ = object->getClassName() + ": " + message;
     }
-    virtual const char* what() {
-        return message.c_str();
+
+    virtual ~tcpException() throw (){}
+
+    virtual const char* what() const throw() {
+        return msg_.c_str();
     }
+
+protected:
+    std::string msg_;
+
+};
+
+class sendRecvException : public tcpException {
+public:
+    explicit sendRecvException(TcpBaseObject *object, const std::string &message) : tcpException(object, message) {}
 
 };
 

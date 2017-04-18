@@ -109,26 +109,26 @@ void TcpBaseObject::add_socket(std::vector<int> &socket_group, int socket) {
 
 uint16_t TcpBaseObject::recv(int socket, uint8_t *buffer, uint16_t length) {
     ssize_t len = ::recv(socket, buffer, length, 0);
-    if (len<1) throw tcpException(this,"cant rcv");
+    if (len<1) throw sendRecvException(this, "cant rcv");
     return (uint16_t) len;
 }
 
 uint8_t TcpBaseObject::recvchar(int socket) {
     char x;
     ssize_t len = ::recv(socket, &x, 1, 0);
-    if (len<1) throw tcpException(this,"cant rcv");
+    if (len<1) throw sendRecvException(this, "cant rcv");
     return (uint8_t) x;
 }
 
 void TcpBaseObject::send(int socket, uint8_t *buffer, uint16_t length) {
     if (::send(socket,buffer,length,0) < length)
-        throw tcpException(this,"cant send");
+        throw sendRecvException(this, "cant send");
 
 }
 
 void TcpBaseObject::sendchar(int socket, uint8_t character) {
     if (::send(socket,&character,1,0) < 1)
-        throw tcpException(this,"cant send");
+        throw sendRecvException(this, "cant send");
 
 }
 
@@ -137,7 +137,7 @@ void TcpBaseObject::f_recv(int socket, uint8_t *buffer, uint16_t length) {
     while (received!=length) {
         ssize_t len = ::recv(socket, buffer+received, length-received, 0);
         received +=len;
-        if (len < 1) throw tcpException(this, "cant rcv");
+        if (len < 1) throw sendRecvException(this, "cant rcv");
     }
 }
 
@@ -146,8 +146,9 @@ uint8_t TcpBaseObject::f_recvchar(int socket) {
     ssize_t len = 0;
     while (len!=1) {
         len = ::recv(socket, &x, 1, 0);
-        if (len < 1) throw tcpException(this, "cant rcv");
+        if (len < 1) throw sendRecvException(this, "cant rcv");
     }
     return (uint8_t) x;
 }
+
 

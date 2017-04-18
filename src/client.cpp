@@ -30,7 +30,7 @@ void Client::live() {
 
         std::vector<int> socketgroup;
         std::vector<int> sel_group;
-        add_socket(socketgroup,listening_socket);
+        add_socket(socketgroup, listening_socket);
 
         uint8_t i_buffer[BUFFER_SIZE];
         uint8_t o_buffer[BUFFER_SIZE];
@@ -49,35 +49,41 @@ void Client::live() {
                     uint8_t sym_key[SYM_KEY_LENGTH];
                     uint8_t iv[IV_LENGTH];
 
-                    f_recv(forward_socket,sym_key,SYM_KEY_LENGTH);
-                    f_recv(forward_socket,iv,IV_LENGTH);
+                    f_recv(forward_socket, sym_key, SYM_KEY_LENGTH);
+                    f_recv(forward_socket, iv, IV_LENGTH);
 
                     std::cout << "iv " << iv << std::endl;
                     std::cout << "sym_key " << sym_key << std::endl;
 
-                    aesCbc = AesCbc(sym_key,iv);
+                    aesCbc = AesCbc(sym_key, iv);
                     add_socket(socketgroup, forward_socket);
                 }
+                try {
+                    if (socket == forward_socket) {
+                        uint8_t block_count = f_recvchar(forward_socket);
+                        uint16_t len = block_count * (uint16_t) BLOCK_SIZE;
+                        f_recv(forward_socket, i_buffer, len);
+                        printdatahex("c {{", (char *) i_buffer, len);
+                        aesCbc.decrypt(o_buffer, &ret_len, i_buffer, &len);
+                        printdatahex("c <<", (char *) o_buffer, ret_len);
+                        send(telnet_socket, o_buffer, ret_len);
 
-                if (socket == forward_socket) {
-                    uint8_t block_count = f_recvchar(forward_socket);
-                    uint16_t len =block_count*(uint16_t)BLOCK_SIZE;
-                    f_recv(forward_socket,i_buffer,len);
-                    printdatahex("c {{", (char *) i_buffer, len);
-                    aesCbc.decrypt( o_buffer, &ret_len, i_buffer, &len);
-                    printdatahex("c <<", (char *) o_buffer, ret_len);
-                    send(telnet_socket, o_buffer, ret_len);
 
-
-                }
-                if (socket == telnet_socket) {
-                    uint16_t len=recv(telnet_socket,  i_buffer, BUFFER_SIZE - BLOCK_SIZE);
-                    printdatahex("c }}", (char *) i_buffer, len);
-                    aesCbc.encrypt(o_buffer,&ret_len,i_buffer,&len);
-                    uint8_t block_count = (uint8_t)(ret_len / (uint16_t)BLOCK_SIZE);
-                    sendchar(forward_socket,block_count);
-                    printdatahex("c >>", (char *) o_buffer, ret_len);
-                    send(forward_socket, o_buffer, ret_len);
+                    }
+                    if (socket == telnet_socket) {
+                        uint16_t len = recv(telnet_socket, i_buffer, BUFFER_SIZE - BLOCK_SIZE);
+                        printdatahex("c }}", (char *) i_buffer, len);
+                        aesCbc.encrypt(o_buffer, &ret_len, i_buffer, &len);
+                        uint8_t block_count = (uint8_t) (ret_len / (uint16_t) BLOCK_SIZE);
+                        sendchar(forward_socket, block_count);
+                        printdatahex("c >>", (char *) o_buffer, ret_len);
+                        send(forward_socket, o_buffer, ret_len);
+                    }
+                } catch (sendRecvException e) {
+                    close(forward_socket);
+                    close(telnet_socket);
+                    remove_socket(socketgroup, forward_socket);
+                    remove_socket(socketgroup, telnet_socket);
                 }
 
 
