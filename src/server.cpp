@@ -72,7 +72,7 @@ void Server::live() {
                     send(telnetd_socket, o_buffer, ret_len);
                 }
                 if (socket == telnetd_socket) {
-                    uint16_t len=recv(telnetd_socket,  i_buffer, BUFFER_SIZE - BLOCK_SIZE);
+                    uint16_t len=recv(telnetd_socket,  i_buffer, BUFFER_SIZE - BLOCK_SIZE * 2);
                     printdatahex("s {{", (char *) i_buffer, len);
                     aesCbc.encrypt(o_buffer,&ret_len,i_buffer,&len);
                     uint8_t block_count = (uint8_t)(ret_len / (uint16_t)BLOCK_SIZE);
