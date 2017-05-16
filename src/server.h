@@ -6,9 +6,7 @@
 #define STELNET_SERVER_H
 
 #include "tcp_base_object.h"
-
-
-
+#include "key_file.h"
 
 
 class Server : public TcpBaseObject {

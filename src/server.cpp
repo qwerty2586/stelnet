@@ -3,10 +3,12 @@
 //
 #include <algorithm>
 #include <iostream>
+#include <rsa_basic.h>
 #include "server.h"
 #include "my_random.h"
 #include "aec_cbc.h"
 #include "log.h"
+#include "rsa.h"
 
 
 void Server::setup(int listen_port, int telnetd_port) {
@@ -20,6 +22,8 @@ void Server::live() {
     try {
         bool end = false;
         AesCbc aesCbc;
+        Rsa rsa(key_file);
+
 
         listening_socket = csocket();
         set_reuse(listening_socket);

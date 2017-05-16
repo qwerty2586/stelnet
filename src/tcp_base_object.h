@@ -8,6 +8,7 @@
 #include <exception>
 #include <string>
 #include <vector>
+#include "key_file.h"
 
 #define BUFFER_SIZE 4096
 
@@ -38,6 +39,12 @@ public:
     void sendchar(int socket,uint8_t character);
 
     void close(int socket);
+
+
+    void setKeyfile(KeyFile *key_file) { this->key_file = key_file;};
+
+protected:
+    KeyFile *key_file = nullptr;
 };
 
 class tcpException : public std::exception {
