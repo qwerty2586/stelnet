@@ -52,31 +52,28 @@ void Client::live() {
                     uint8_t iv[IV_LENGTH];
                     uint8_t password[PASS_LENGTH];
 
-                    uint16_t *blob_l = new uint16_t(key_file->getSize());
+                    uint16_t *blob_l = new uint16_t(key_file->getSize()+1);
 
                     uint8_t l;
                     f_recv(forward_socket,&l,1);
-                    uint8_t *blob = new uint8_t[l];
+                    uint8_t *blob = new uint8_t[*blob_l];
                     f_recv(forward_socket,blob,l);
+                    uint16_t *blob_l2 = new uint16_t(*blob_l);
+                    *blob_l = l;
 
-                    rsa.decrypt_private((char *) blob, blob_l, (char *) blob, blob_l);
 
-                    memcpy(sym_key,blob,SYM_KEY_LENGTH);
-                    memcpy(iv,blob+SYM_KEY_LENGTH,IV_LENGTH);
-                    memcpy(password,blob+SYM_KEY_LENGTH+IV_LENGTH,PASS_LENGTH);
+                    rsa.decrypt_private((char *) blob, blob_l2, (char *) blob, blob_l);
 
-                    std::cout << "iv " << iv << std::endl;
-                    std::cout << "sym_key " << sym_key << std::endl;
-                    std::cout << "password " << password << std::endl;
+                    memcpy(sym_key,blob+1,SYM_KEY_LENGTH);
+                    memcpy(iv,blob+1+SYM_KEY_LENGTH,IV_LENGTH);
+                    memcpy(password,blob+1+SYM_KEY_LENGTH+IV_LENGTH,PASS_LENGTH);
+
+                    printdatahex("iv      ", (char *) iv, IV_LENGTH);
+                    printdatahex("sym_key ", (char *) sym_key, SYM_KEY_LENGTH);
+                    printdatahex("password", (char *) password, PASS_LENGTH);
 
                     aesCbc = AesCbc(sym_key, iv);
-                    *blob_l = PASS_LENGTH;
-                    aesCbc.encrypt(blob,blob_l,password,blob_l);
-                    aesCbc.resetIv(iv);
-
-                    l = (uint8_t) *blob_l;
-                    send(forward_socket,&l,1);
-                    send(forward_socket,blob,*blob_l);
+                    send(forward_socket,password,PASS_LENGTH);
 
                     add_socket(socketgroup, forward_socket);
                 }
