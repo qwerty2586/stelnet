@@ -83,9 +83,11 @@ void KeyFile::parse(std::vector<unsigned char> data) {
         iter +=length;
     }
 
-    std::cout << seq_length << std::endl;
 
 
 
+}
 
+int KeyFile::getSize() {
+    return (int) (modulus.length()-1);
 }

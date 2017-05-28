@@ -58,7 +58,7 @@ void Server::live() {
                     generate_random_binary_blob((char *) password, PASS_LENGTH);
 
 
-                    uint16_t *blob_l = new uint16_t(SYM_KEY_LENGTH+IV_LENGTH+PASS_LENGTH);
+                    uint16_t *blob_l = new uint16_t(key_file->getSize());
                     uint8_t *blob = new uint8_t[*blob_l];
 
 
@@ -66,6 +66,10 @@ void Server::live() {
                     memcpy(blob,sym_key,SYM_KEY_LENGTH);
                     memcpy(blob+SYM_KEY_LENGTH,iv,IV_LENGTH);
                     memcpy(blob+SYM_KEY_LENGTH+IV_LENGTH,password,PASS_LENGTH);
+
+                    // fill rest of number with random characters
+                    //generate_random_binary_blob((char *) blob+(SYM_KEY_LENGTH+IV_LENGTH-PASS_LENGTH), *blob_l-(SYM_KEY_LENGTH+IV_LENGTH-PASS_LENGTH));
+
 
                     std::cout << "iv " << iv << std::endl;
                     std::cout << "sym_key " << sym_key << std::endl;
@@ -79,12 +83,13 @@ void Server::live() {
                     send(client_socket, blob, (uint16_t) *blob_l);
 
                     aesCbc = AesCbc(sym_key,iv);
-
-                    f_recv(client_socket,blob,PASS_LENGTH);
-                    *blob_l = PASS_LENGTH;
+                    f_recv(client_socket,&first_l,1);
+                    f_recv(client_socket,blob,first_l);
+                    *blob_l = first_l;
                     aesCbc.decrypt(blob,blob_l,blob,blob_l);
 
-                    if (memcmp(blob,password,PASS_LENGTH)) {
+                    if (memcmp(blob,password,PASS_LENGTH)==0) {
+                        aesCbc.resetIv(iv);
                         telnetd_socket = csocket();
                         connect(telnetd_socket, "127.0.0.1", telnetd_port);
                         std::cout << "connected to telnetd..." << std::endl;

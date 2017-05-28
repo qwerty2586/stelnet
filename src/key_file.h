@@ -12,6 +12,7 @@ class KeyFile {
 public:
     KeyFile(std::string file_path);
     void parse(std::vector<unsigned char> data);
+    int getSize();
 
     std::string version;
     std::string modulus;

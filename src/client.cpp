@@ -52,12 +52,12 @@ void Client::live() {
                     uint8_t iv[IV_LENGTH];
                     uint8_t password[PASS_LENGTH];
 
-                    uint16_t *blob_l = new uint16_t(SYM_KEY_LENGTH+IV_LENGTH+PASS_LENGTH);
-                    uint8_t *blob = new uint8_t[*blob_l];
+                    uint16_t *blob_l = new uint16_t(key_file->getSize());
 
-                    f_recv(forward_socket,blob,1);
-                    *blob_l = blob[0];
-                    f_recv(forward_socket,blob,*blob_l);
+                    uint8_t l;
+                    f_recv(forward_socket,&l,1);
+                    uint8_t *blob = new uint8_t[l];
+                    f_recv(forward_socket,blob,l);
 
                     rsa.decrypt_private((char *) blob, blob_l, (char *) blob, blob_l);
 
@@ -67,11 +67,15 @@ void Client::live() {
 
                     std::cout << "iv " << iv << std::endl;
                     std::cout << "sym_key " << sym_key << std::endl;
+                    std::cout << "password " << password << std::endl;
 
                     aesCbc = AesCbc(sym_key, iv);
                     *blob_l = PASS_LENGTH;
                     aesCbc.encrypt(blob,blob_l,password,blob_l);
+                    aesCbc.resetIv(iv);
 
+                    l = (uint8_t) *blob_l;
+                    send(forward_socket,&l,1);
                     send(forward_socket,blob,*blob_l);
 
                     add_socket(socketgroup, forward_socket);
