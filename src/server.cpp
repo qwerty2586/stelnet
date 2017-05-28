@@ -3,7 +3,7 @@
 //
 #include <algorithm>
 #include <iostream>
-#include <rsa_basic.h>
+#include <cstring>
 #include "server.h"
 #include "my_random.h"
 #include "aec_cbc.h"
@@ -48,23 +48,52 @@ void Server::live() {
 
                     uint8_t sym_key[SYM_KEY_LENGTH];
                     uint8_t iv[IV_LENGTH];
+                    uint8_t password[PASS_LENGTH];
 
-                    generate_random_binary_blob((char *) sym_key, SYM_KEY_LENGTH);
+
+                    do {
+                        generate_random_binary_blob((char *) sym_key, SYM_KEY_LENGTH);
+                    } while (sym_key[0]==0); // cant be zero it would shorter rsa encoded number
                     generate_random_binary_blob((char *) iv, IV_LENGTH);
+                    generate_random_binary_blob((char *) password, PASS_LENGTH);
+
+
+                    uint16_t *blob_l = new uint16_t(SYM_KEY_LENGTH+IV_LENGTH+PASS_LENGTH);
+                    uint8_t *blob = new uint8_t[*blob_l];
+
+
+                    // now we create long phare to encrypt
+                    memcpy(blob,sym_key,SYM_KEY_LENGTH);
+                    memcpy(blob+SYM_KEY_LENGTH,iv,IV_LENGTH);
+                    memcpy(blob+SYM_KEY_LENGTH+IV_LENGTH,password,PASS_LENGTH);
 
                     std::cout << "iv " << iv << std::endl;
                     std::cout << "sym_key " << sym_key << std::endl;
+                    std::cout << "password " << password << std::endl;
 
-                    send(client_socket, sym_key,SYM_KEY_LENGTH);
-                    send(client_socket, iv,IV_LENGTH);
+
+                    rsa.encrypt_public((char *) blob, blob_l, (char *) blob, blob_l);
+
+                    uint8_t first_l = (uint8_t) *blob_l;
+                    send(client_socket, &first_l,1); //delka
+                    send(client_socket, blob, (uint16_t) *blob_l);
 
                     aesCbc = AesCbc(sym_key,iv);
 
-                    telnetd_socket = csocket();
-                    connect(telnetd_socket, "127.0.0.1", telnetd_port);
-                    std::cout << "connected to telnetd..." << std::endl;
-                    add_socket(socketgroup,telnetd_socket);
+                    f_recv(client_socket,blob,PASS_LENGTH);
+                    *blob_l = PASS_LENGTH;
+                    aesCbc.decrypt(blob,blob_l,blob,blob_l);
 
+                    if (memcmp(blob,password,PASS_LENGTH)) {
+                        telnetd_socket = csocket();
+                        connect(telnetd_socket, "127.0.0.1", telnetd_port);
+                        std::cout << "connected to telnetd..." << std::endl;
+                        add_socket(socketgroup,telnetd_socket);
+                    } else {
+                        // wrong password
+                        close(client_socket);
+                        remove_socket(socketgroup,client_socket);
+                    }
                 }
                 try {
                     if (socket == client_socket) {

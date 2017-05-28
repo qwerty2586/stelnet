@@ -10,6 +10,7 @@
 
 #define SYM_KEY_LENGTH 16
 #define IV_LENGTH 16
+#define PASS_LENGTH 16
 #define BLOCK_SIZE 16
 
 extern std::mutex mutex;

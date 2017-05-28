@@ -7,16 +7,21 @@
 
 #include "key_file.h"
 
-extern "C" {
-#include "3rdparty/avr_crypto_lib/rsa_basic.h"
-#include "3rdparty/avr_crypto_lib/bigint.h"
-}
+#include "gmp.h"
+
 
 class Rsa {
 public:
     Rsa(KeyFile *key_file);
+
+    // encrypt phrase with public key
+    void encrypt_public(char *output, uint16_t *out_length, char *input, uint16_t *in_length);
+    // decrypt phrase with private key
+    void decrypt_private(char *output, uint16_t *out_length, char *input, uint16_t *in_length);
+
 protected:
-    KeyFile* key_file ;
+    // reference to KeyFile structure
+    KeyFile *key_file;
 };
 
 

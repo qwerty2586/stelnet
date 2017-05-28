@@ -76,9 +76,12 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (key_file_path.size() > 0 ) {
-        keyFile = new KeyFile(key_file_path);
+    if (key_file_path.size() == 0 ) {
+        std::cout << "No keyfile specified can't continue" << std::endl;
+        return 0;
     }
+
+    keyFile = new KeyFile(key_file_path);
 
     logging_enabled = log;
 

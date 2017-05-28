@@ -35,29 +35,41 @@ set(SOURCE_FILES
         src/base64.h
 
         src/key_file.cpp
-        src/key_file.h src/rsa.cpp src/rsa.h)
+        src/key_file.h
+
+        src/rsa.cpp
+        src/rsa.h)
 
 SET(AES_LIB_DIR "src/3rdparty/tiny_AES128_C")
 
-SET(RSA_LIB_DIR "src/3rdparty/avr_crypto_lib")
+SET(RSA_LIB_DIR "src/3rdparty/gmp_cygwin")
 
-INCLUDE_DIRECTORIES(${AES_LIB_DIR} ${RSA_LIB_DIR})
+#INCLUDE_DIRECTORIES(${AES_LIB_DIR} ${RSA_LIB_DIR}/include)
 
 ADD_LIBRARY(
         tiny_aes_lib
         ${AES_LIB_DIR}/aes.c
 )
 
-ADD_LIBRARY(
-        avr_crypto_lib
-        ${RSA_LIB_DIR}/rsa_basic.c
-        ${RSA_LIB_DIR}/rsa_basic.h
-        ${RSA_LIB_DIR}/bigint.c
-        ${RSA_LIB_DIR}/bigint_io.c
-        ${RSA_LIB_DIR}/hexdigit_tab_c.c
-)
+
+find_library(
+        libgmp
+        NAMES gmp libgmp
+        HINTS "/usr/lib/" "/usr/local/lib/"
+        )
+
+INCLUDE_DIRECTORIES(${AES_LIB_DIR} "/usr/include/")
+
+
+#[[ADD_LIBRARY(
+        gmp_lib
+      #  ${RSA_LIB_DIR}/lib/libgmp.la
+      #  ${RSA_LIB_DIR}/lib/libgmp.la
+)]]
+
+LINK_DIRECTORIES(${RSA_LIB_DIR}/lib)
 
 
 
 add_executable(stelnet ${SOURCE_FILES})
-target_link_libraries(stelnet tiny_aes_lib avr_crypto_lib)
+target_link_libraries(stelnet tiny_aes_lib ${libgmp})

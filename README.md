@@ -1,4 +1,4 @@
-## stelnet
+# stelnet
 
 stelnet is tool for encrypting telnet communication. Project is intended as proof of concept for applications where ssh 
 server is too heavyweight, but you still need good secure connection.
@@ -46,7 +46,36 @@ To ensure security, by default client mode listens only on localhost.
     ---------------------                                  
     
     
+## Usage
 
+install libgmp
+```
+apt install libgmp-dev
+```
+compile 
+```
+cmake .
+```
+prepare keyfile
+```
+openssl genrsa -out keyfile 2048
+```
+start server side on computer with telnetd
+```
+./stelnet --server --listen-port 3000 --telnetd-port 23 --keyfile keyfile
+# or shorter
+./stelnet -s -l 3000 -d 23 -k keyfile
+```
+then on client computer
+```
+./stelnet --client --address server_address --port 3000 --telnet 5000 --keyfile keyfile
+# or shorter
+./stelnet -c -a server_address -p 3000 -t 3000 -k keyfile
+```
+now you can finally connect locally to telnet
+```
+telnet localhost 5000
+```
 
 
 

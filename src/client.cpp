@@ -6,9 +6,11 @@
 #define ECB 1
 
 #include <iostream>
+#include <cstring>
 #include "client.h"
 #include "aec_cbc.h"
 #include "log.h"
+#include "rsa.h"
 
 void Client::setup(int listen_port, int target_port, const std::string &target_address) {
     this->listening_port = listen_port;
@@ -21,6 +23,7 @@ void Client::live() {
     try {
         bool end = false;
         AesCbc aesCbc;
+        Rsa rsa(key_file);
 
         listening_socket = csocket();
         set_reuse(listening_socket);
@@ -47,14 +50,30 @@ void Client::live() {
 
                     uint8_t sym_key[SYM_KEY_LENGTH];
                     uint8_t iv[IV_LENGTH];
+                    uint8_t password[PASS_LENGTH];
 
-                    f_recv(forward_socket, sym_key, SYM_KEY_LENGTH);
-                    f_recv(forward_socket, iv, IV_LENGTH);
+                    uint16_t *blob_l = new uint16_t(SYM_KEY_LENGTH+IV_LENGTH+PASS_LENGTH);
+                    uint8_t *blob = new uint8_t[*blob_l];
+
+                    f_recv(forward_socket,blob,1);
+                    *blob_l = blob[0];
+                    f_recv(forward_socket,blob,*blob_l);
+
+                    rsa.decrypt_private((char *) blob, blob_l, (char *) blob, blob_l);
+
+                    memcpy(sym_key,blob,SYM_KEY_LENGTH);
+                    memcpy(iv,blob+SYM_KEY_LENGTH,IV_LENGTH);
+                    memcpy(password,blob+SYM_KEY_LENGTH+IV_LENGTH,PASS_LENGTH);
 
                     std::cout << "iv " << iv << std::endl;
                     std::cout << "sym_key " << sym_key << std::endl;
 
                     aesCbc = AesCbc(sym_key, iv);
+                    *blob_l = PASS_LENGTH;
+                    aesCbc.encrypt(blob,blob_l,password,blob_l);
+
+                    send(forward_socket,blob,*blob_l);
+
                     add_socket(socketgroup, forward_socket);
                 }
                 try {
