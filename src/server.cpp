@@ -79,8 +79,11 @@ void Server::live() {
                     *blob_l = (uint16_t) (*blob_l - 1);
                     rsa.encrypt_public((char *) blob, blob_l, (char *) blob, blob_l);
 
-                    uint8_t first_l = (uint8_t) *blob_l;
-                    send(client_socket, &first_l,1); //delka
+                    uint8_t size = (uint8_t) ((*blob_l) / 256);
+                    send(client_socket, &size,1); //delka
+                    size = (uint8_t) ((*blob_l) % 256);
+                    send(client_socket, &size,1);
+
                     send(client_socket, blob, (uint16_t) *blob_l);
 
                     f_recv(client_socket,blob,PASS_LENGTH);

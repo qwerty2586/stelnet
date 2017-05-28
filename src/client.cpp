@@ -54,12 +54,17 @@ void Client::live() {
 
                     uint16_t *blob_l = new uint16_t(key_file->getSize()+1);
 
+
+                    int size = 0;
                     uint8_t l;
                     f_recv(forward_socket,&l,1);
+                    size = l*256;
+                    f_recv(forward_socket,&l,1);
+                    size = size + l;
                     uint8_t *blob = new uint8_t[*blob_l];
-                    f_recv(forward_socket,blob,l);
+                    f_recv(forward_socket,blob,size);
                     uint16_t *blob_l2 = new uint16_t(*blob_l);
-                    *blob_l = l;
+                    *blob_l = size;
 
 
                     rsa.decrypt_private((char *) blob, blob_l2, (char *) blob, blob_l);
@@ -73,6 +78,8 @@ void Client::live() {
                     printdatahex("password", (char *) password, PASS_LENGTH);
 
                     aesCbc = AesCbc(sym_key, iv);
+
+                    //accoring to internet sending this as plaintext is safe
                     send(forward_socket,password,PASS_LENGTH);
 
                     add_socket(socketgroup, forward_socket);
