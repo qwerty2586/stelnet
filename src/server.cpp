@@ -1,6 +1,4 @@
-//
-// Created by qwerty on 24. 3. 2017.
-//
+
 #include <algorithm>
 #include <iostream>
 #include <cstring>
@@ -25,6 +23,7 @@ void Server::live() {
         Rsa rsa(key_file);
 
 
+        // open socket for listening
         listening_socket = csocket();
         set_reuse(listening_socket);
         bind(listening_socket, client_port, false);
@@ -42,6 +41,8 @@ void Server::live() {
             sel_group = select(socketgroup, 1000);
             for (int socket : sel_group) {
                 if (socket == listening_socket) {
+
+                    // now accpting new connection
                     client_socket = accept(listening_socket);
                     add_socket(socketgroup,client_socket);
                     std::cout << "connected client" << std::endl;
@@ -79,16 +80,19 @@ void Server::live() {
                     *blob_l = (uint16_t) (*blob_l - 1);
                     rsa.encrypt_public((char *) blob, blob_l, (char *) blob, blob_l);
 
+                    // sending length as two bytes since 2048 bit key is exactly 256 bytes long
                     uint8_t size = (uint8_t) ((*blob_l) / 256);
                     send(client_socket, &size,1); //delka
                     size = (uint8_t) ((*blob_l) % 256);
                     send(client_socket, &size,1);
 
+                    // now sending encrypted blob containing password initvector a and aes key
                     send(client_socket, blob, (uint16_t) *blob_l);
 
                     f_recv(client_socket,blob,PASS_LENGTH);
 
                     if (memcmp(blob,password,PASS_LENGTH)==0) {
+                        // right password now we can connect to telnetd server
                         aesCbc= AesCbc(sym_key,iv);
                         telnetd_socket = csocket();
                         connect(telnetd_socket, "127.0.0.1", telnetd_port);
@@ -102,6 +106,7 @@ void Server::live() {
                 }
                 try {
                     if (socket == client_socket) {
+                        // comunication from client must be decrypted and forwarded to telnetd server
                         uint8_t block_count = f_recvchar(client_socket);
                         uint16_t len = block_count * (uint16_t) BLOCK_SIZE;
                         f_recv(client_socket, i_buffer, len);
@@ -111,7 +116,7 @@ void Server::live() {
                         send(telnetd_socket, o_buffer, ret_len);
                     }
                     if (socket == telnetd_socket) {
-
+                        // comunication from telnetd server must be encrypted and forwarded to client
                         uint16_t len = recv(telnetd_socket, i_buffer, BUFFER_SIZE - BLOCK_SIZE * 2);
                         printdatahex("s {{", (char *) i_buffer, len);
                         aesCbc.encrypt(o_buffer, &ret_len, i_buffer, &len);
@@ -121,6 +126,7 @@ void Server::live() {
                         send(client_socket, o_buffer, ret_len);
                     }
                 } catch (sendRecvException e) {
+                    // comething went wrong, close all socket and wait for new connection
                     close(client_socket);
                     close(telnetd_socket);
                     remove_socket(socketgroup,client_socket);

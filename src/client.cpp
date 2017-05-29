@@ -42,9 +42,11 @@ void Client::live() {
             sel_group = select(socketgroup, 1000);
             for (int socket : sel_group) {
                 if (socket == listening_socket) {
+                    // accept new connection from telnet client
                     telnet_socket = accept(listening_socket);
                     add_socket(socketgroup, telnet_socket); // pridame si ho do skupinky
 
+                    // connect to server
                     forward_socket = csocket();
                     connect(forward_socket, target_address, target_port);
 
@@ -55,6 +57,7 @@ void Client::live() {
                     uint16_t *blob_l = new uint16_t(key_file->getSize()+1);
 
 
+                    // now we read size of incoming blob as two bytes
                     int size = 0;
                     uint8_t l;
                     f_recv(forward_socket,&l,1);
@@ -62,13 +65,15 @@ void Client::live() {
                     f_recv(forward_socket,&l,1);
                     size = size + l;
                     uint8_t *blob = new uint8_t[*blob_l];
-                    f_recv(forward_socket,blob,size);
+
+                    // reading blob
+                    f_recv(forward_socket, blob, (uint16_t) size);
                     uint16_t *blob_l2 = new uint16_t(*blob_l);
                     *blob_l = size;
 
 
+                    // now decrypt blob and parse its parts
                     rsa.decrypt_private((char *) blob, blob_l2, (char *) blob, blob_l);
-
                     memcpy(sym_key,blob+1,SYM_KEY_LENGTH);
                     memcpy(iv,blob+1+SYM_KEY_LENGTH,IV_LENGTH);
                     memcpy(password,blob+1+SYM_KEY_LENGTH+IV_LENGTH,PASS_LENGTH);
@@ -77,15 +82,19 @@ void Client::live() {
                     printdatahex("sym_key ", (char *) sym_key, SYM_KEY_LENGTH);
                     printdatahex("password", (char *) password, PASS_LENGTH);
 
+                    // initialize AES with right init vector and key
                     aesCbc = AesCbc(sym_key, iv);
 
                     //accoring to internet sending this as plaintext is safe
                     send(forward_socket,password,PASS_LENGTH);
 
+                    // in this moment server may kick us out of connecting depending on right password
+
                     add_socket(socketgroup, forward_socket);
                 }
                 try {
                     if (socket == forward_socket) {
+                        // comunication from server must be decrypted and forwarded to telnet client
                         uint8_t block_count = f_recvchar(forward_socket);
                         uint16_t len = block_count * (uint16_t) BLOCK_SIZE;
                         f_recv(forward_socket, i_buffer, len);
@@ -97,6 +106,7 @@ void Client::live() {
 
                     }
                     if (socket == telnet_socket) {
+                        // comunication from telnet client must be encrypted and forwarded to server
                         uint16_t len = recv(telnet_socket, i_buffer, BUFFER_SIZE - BLOCK_SIZE);
                         printdatahex("c }}", (char *) i_buffer, len);
                         aesCbc.encrypt(o_buffer, &ret_len, i_buffer, &len);
@@ -106,6 +116,7 @@ void Client::live() {
                         send(forward_socket, o_buffer, ret_len);
                     }
                 } catch (sendRecvException e) {
+                    // comething went wrong, close all socket and wait for new connection from telnet client
                     close(forward_socket);
                     close(telnet_socket);
                     remove_socket(socketgroup, forward_socket);
@@ -117,6 +128,7 @@ void Client::live() {
         }
 
     } catch (tcpException e) {
+        // other error
         std::cerr << e.what() << std::endl;
     }
 

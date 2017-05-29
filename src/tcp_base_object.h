@@ -1,6 +1,3 @@
-//
-// Created by qwerty on 25. 3. 2017.
-//
 
 #ifndef STELNET_TCP_BASE_OBJECT_H
 #define STELNET_TCP_BASE_OBJECT_H
@@ -12,6 +9,7 @@
 
 #define BUFFER_SIZE 4096
 
+/// Interface providing basic tcp communication and wraping horrinble bsd sockets to something more usable
 class TcpBaseObject {
 
 public:
@@ -22,6 +20,8 @@ public:
     int accept(int socket);
     void connect(int socket, const std::string &address, int port);
     void send(int socket, const std::string &message);
+
+    /// socket groups are vector of sockets whick can be watched by my implementation of select
     std::vector<int> select(std::vector<int> &socket_group, int ms_timeout);
     void remove_socket(std::vector<int> &socket_group,int socket);
     void add_socket(std::vector<int> &socket_group,int socket);
@@ -30,7 +30,7 @@ public:
     uint16_t recv(int socket, uint8_t *buffer, uint16_t length = BUFFER_SIZE);
     uint8_t recvchar(int socket);
 
-    // force versions of recv
+    // force versions of recv, reading until specified number of bytes are received
     void f_recv(int socket, uint8_t *buffer, uint16_t length = BUFFER_SIZE);
     uint8_t f_recvchar(int socket);
 
@@ -47,6 +47,7 @@ protected:
     KeyFile *key_file = nullptr;
 };
 
+/// exception class for throwing network errors
 class tcpException : public std::exception {
 public:
 
@@ -65,6 +66,7 @@ protected:
 
 };
 
+/// this exception is basicly for detecting end of stream(disconnect)
 class sendRecvException : public tcpException {
 public:
     explicit sendRecvException(TcpBaseObject *object, const std::string &message) : tcpException(object, message) {}
