@@ -55,6 +55,7 @@ apt install libgmp-dev
 compile 
 ```
 cmake .
+make
 ```
 prepare keyfile
 ```
