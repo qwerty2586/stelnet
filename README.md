@@ -71,7 +71,7 @@ then on client computer
 ```
 ./stelnet --client --address server_address --port 3000 --telnet 5000 --keyfile keyfile
 # or shorter
-./stelnet -c -a server_address -p 3000 -t 3000 -k keyfile
+./stelnet -c -a server_address -p 3000 -t 5000 -k keyfile
 ```
 now you can finally connect locally to telnet
 ```
